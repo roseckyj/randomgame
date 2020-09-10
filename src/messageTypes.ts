@@ -1,11 +1,10 @@
-export interface player {
-    x: number;
-    y: number;
-    velocityX: number;
-    velocityY: number;
-}
+import { serializedPlayer } from "./gameObjects/Player";
 
 export interface messageUpdate {
     id: number;
-    content: player;
+    content: serializedPlayer;
+}
+
+export interface messagePlayers {
+    [key: string]: serializedPlayer;
 }

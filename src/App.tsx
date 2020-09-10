@@ -1,13 +1,12 @@
 import React from 'react';
 import io from 'socket.io-client';
-import { player } from './messageTypes';
+import { messagePlayers } from './messageTypes';
 
 import '@babylonjs/core/Physics/physicsEngineComponent'; // side-effect adds scene.enablePhysics function
-import { Vector3, Mesh, Texture, FreeCamera, UniversalCamera } from '@babylonjs/core';
+import { Vector3, UniversalCamera } from '@babylonjs/core';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
+import { Player } from './gameObjects/Player';
 
-const SPEED_CHANGE = 1;
-const SLOWING = 0.95;
 const KEY_UP = 38;
 const KEY_DOWN = 40;
 const KEY_LEFT = 37;
@@ -16,23 +15,23 @@ const KEY_RIGHT = 39;
 interface IAppProps {}
 
 interface IAppState {
-    players: { [key: string]: player };
-    me: player | null;
+    players: { [key: string]: Player };
+    me: Player | null;
+    updatePrompter: number;
 }
 
 class App extends React.Component<IAppProps, IAppState> {
     socket: SocketIOClient.Socket;
-    index: string;
-
-    keysPressed: number[] = [];
 
     state: IAppState = {
         players: {},
         me: null,
+        updatePrompter: 0,
     };
 
     constructor(props: IAppProps) {
         super(props);
+        //this.socket = io('http://localhost:80/');
         this.socket = io('https://randombot-server.herokuapp.com/');
 
         setInterval(() => {
@@ -40,18 +39,14 @@ class App extends React.Component<IAppProps, IAppState> {
         }, 100);
 
         document.addEventListener('keydown', (event) => {
-            //event.preventDefault();
-
-            if (!this.keysPressed.includes(event.keyCode)) {
-                this.keysPressed.push(event.keyCode);
+            if (this.state.me) {
+                this.state.me.keyDown(event.keyCode);
             }
         });
 
         document.addEventListener('keyup', (event) => {
-            //event.preventDefault();
-
-            if (this.keysPressed.includes(event.keyCode)) {
-                this.keysPressed = this.keysPressed.filter((keyCode) => keyCode !== event.keyCode);
+            if (this.state.me) {
+                this.state.me.keyUp(event.keyCode);
             }
         });
 
@@ -62,75 +57,59 @@ class App extends React.Component<IAppProps, IAppState> {
 
     componentDidMount() {
         this.socket.on('id', (data: string) => {
-            this.index = data;
-            console.log('Received game ID: ', this.index);
+            const me = new Player(data);
+            me.bindKeys({
+                left: KEY_LEFT,
+                right: KEY_RIGHT,
+                up: KEY_UP,
+                down: KEY_DOWN,
+            });
+
+            this.setState({ me, players: { [data]: me } });
+
+            console.log('Joined game with player ID: ', data);
         });
-        this.socket.on('players', (data: { [key: string]: player }) => {
-            this.setState({ players: data });
-            if (!this.state.me) {
-                this.setState({ me: data[this.index] });
-                console.log('Created my character');
-            }
+
+        this.socket.on('players', (data: messagePlayers) => {
+            let players = this.state.players;
+
+            Object.keys(data).forEach((key) => {
+                if (key === this.state.me?.id) {
+                    return;
+                }
+
+                if (Object.keys(this.state.players).includes(key)) {
+                    players[key].deserialize(data[key], true);
+                } else {
+                    players[key] = new Player(key);
+                    players[key].deserialize(data[key]);
+                }
+            });
+
+            Object.keys(this.state.players).forEach((key) => {
+                if (!Object.keys(data).includes(key)) {
+                    delete players[key];
+                }
+            });
+
+            this.setState({ players });
         });
+
         this.resize();
     }
 
     update() {
         if (this.state.me) {
-            this.socket.emit('update', { id: this.index, content: this.state.me });
+            this.socket.emit('update', { id: this.state.me.id, content: this.state.me.serialize() });
         }
     }
 
-    tick(deltaTimeRaw: number) {
-        const deltaTime = deltaTimeRaw * 0.1;
+    tick(deltaTime: number) {
+        Object.values(this.state.players).forEach((player) => {
+            player.tick(deltaTime);
+        });
 
-        if (this.state.me) {
-            let me = this.state.me;
-
-            let movingX = false;
-            let movingY = false;
-
-            const diagonalModifier = Math.sqrt(2);
-
-            if (this.keysPressed.includes(KEY_LEFT) || this.keysPressed.includes(KEY_RIGHT)) {
-                movingX = true;
-            }
-            if (this.keysPressed.includes(KEY_UP) || this.keysPressed.includes(KEY_DOWN)) {
-                movingY = true;
-            }
-
-            if (this.keysPressed.includes(KEY_LEFT)) {
-                // Left
-                me.velocityX -= (SPEED_CHANGE * deltaTime) / (movingY ? diagonalModifier : 1);
-            }
-            if (this.keysPressed.includes(KEY_RIGHT)) {
-                // Right
-                me.velocityX += (SPEED_CHANGE * deltaTime) / (movingY ? diagonalModifier : 1);
-            }
-            if (this.keysPressed.includes(KEY_UP)) {
-                // Up
-                me.velocityY -= (SPEED_CHANGE * deltaTime) / (movingX ? diagonalModifier : 1);
-            }
-            if (this.keysPressed.includes(KEY_DOWN)) {
-                // Down
-                me.velocityY += (SPEED_CHANGE * deltaTime) / (movingX ? diagonalModifier : 1);
-            }
-
-            me.x += this.state.me.velocityX * deltaTime;
-            me.y += this.state.me.velocityY * deltaTime;
-
-            me.velocityX *= Math.pow(SLOWING, deltaTime);
-            me.velocityY *= Math.pow(SLOWING, deltaTime);
-
-            if (Math.abs(me.velocityX) < 0.1) {
-                me.velocityX = 0;
-            }
-            if (Math.abs(me.velocityY) < 0.1) {
-                me.velocityY = 0;
-            }
-
-            this.setState({ me });
-        }
+        this.setState({ updatePrompter: Math.random() });
     }
 
     resize() {
@@ -164,55 +143,7 @@ class App extends React.Component<IAppProps, IAppState> {
             <>
                 <Engine antialias={true} canvasId="game">
                     <Scene onSceneMount={(event) => this.onSceneMount(event)}>
-                        {Object.keys(this.state.players)
-                            .filter((key) => key !== this.index)
-                            .map((key, index) => (
-                                <plane
-                                    name="canvas"
-                                    size={1}
-                                    position={
-                                        new Vector3(
-                                            this.state.players[key].x * 0.01,
-                                            this.state.players[key].y * 0.01,
-                                            0,
-                                        )
-                                    }
-                                    sideOrientation={Mesh.BACKSIDE}
-                                    key={index}
-                                >
-                                    <advancedDynamicTexture
-                                        name="dialogTexture"
-                                        height={100}
-                                        width={100}
-                                        createForParentMesh={true}
-                                        hasAlpha={true}
-                                        generateMipMaps={true}
-                                        samplingMode={Texture.TRILINEAR_SAMPLINGMODE}
-                                    >
-                                        <rectangle background={'#AAFF00'} name="rect-1" height={1} width={1} />
-                                    </advancedDynamicTexture>
-                                </plane>
-                            ))}
-                        {this.state.me && (
-                            <plane
-                                name="canvas"
-                                size={1}
-                                position={new Vector3(this.state.me.x * 0.01, this.state.me.y * 0.01, 0)}
-                                sideOrientation={Mesh.BACKSIDE}
-                            >
-                                <advancedDynamicTexture
-                                    name="dialogTexture"
-                                    height={100}
-                                    width={100}
-                                    createForParentMesh={true}
-                                    hasAlpha={true}
-                                    generateMipMaps={true}
-                                    samplingMode={Texture.TRILINEAR_SAMPLINGMODE}
-                                >
-                                    <rectangle background={'#FF0000'} name="rect-1" height={1} width={1} />
-                                </advancedDynamicTexture>
-                            </plane>
-                        )}
+                        {Object.values(this.state.players).map((player, index) => player.render(index))}
                     </Scene>
                 </Engine>
             </>

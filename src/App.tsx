@@ -147,7 +147,7 @@ class App extends React.Component<IAppProps, IAppState> {
     onSceneMount(event: SceneEventArgs) {
         const { scene } = event;
 
-        const camera = new UniversalCamera('Camera', new Vector3(0, 0, 20), scene);
+        const camera = new UniversalCamera('Camera', new Vector3(0, 0, 40), scene);
         camera.rotation = new Vector3(0, -Math.PI, Math.PI);
 
         scene.getEngine().runRenderLoop(() => {

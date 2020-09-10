@@ -15,13 +15,37 @@ class App extends React.Component<IAppProps, IAppState> {
     me: player | null = null;
     index: string;
 
+    keysPressed: number[] = [];
+
     constructor(props: IAppProps) {
         super(props);
-        this.socket = io('https://randombot-server.herokuapp.com');
+        this.socket = io('https://randombot-server.herokuapp.com/');
 
         setInterval(() => {
             this.update();
         }, 100);
+
+        setInterval(() => {
+            this.tick();
+        }, 10);
+
+        document.addEventListener('keydown', (event) => {
+            event.preventDefault();
+
+            if (!this.keysPressed.includes(event.keyCode)) {
+                this.keysPressed.push(event.keyCode);
+            }
+
+            console.log(this.keysPressed);
+        });
+
+        document.addEventListener('keyup', (event) => {
+            event.preventDefault();
+
+            if (this.keysPressed.includes(event.keyCode)) {
+                this.keysPressed = this.keysPressed.filter((keyCode) => keyCode !== event.keyCode);
+            }
+        });
     }
 
     componentDidMount() {
@@ -51,29 +75,32 @@ class App extends React.Component<IAppProps, IAppState> {
         });
     }
 
-    move(direction: 'up' | 'down' | 'left' | 'right') {
+    update() {
         if (this.me) {
-            switch (direction) {
-                case 'up':
-                    this.me.y -= 10;
-                    break;
-                case 'down':
-                    this.me.y += 10;
-                    break;
-                case 'left':
-                    this.me.x -= 10;
-                    break;
-                case 'right':
-                    this.me.x += 10;
-                    break;
-            }
+            this.socket.emit('update', { id: this.index, content: this.me });
+        } else {
+            console.log("Can't update, player does not exist!", this.index);
         }
     }
 
-    update() {
-        console.log("Can't update, player does not exist!", this.index);
+    tick() {
         if (this.me) {
-            this.socket.emit('update', { id: this.index, content: this.me });
+            if (this.keysPressed.includes(37)) {
+                // Left
+                this.me.x--;
+            }
+            if (this.keysPressed.includes(39)) {
+                // Right
+                this.me.x++;
+            }
+            if (this.keysPressed.includes(38)) {
+                // Up
+                this.me.y--;
+            }
+            if (this.keysPressed.includes(40)) {
+                // Down
+                this.me.y++;
+            }
         }
     }
 
@@ -86,13 +113,7 @@ class App extends React.Component<IAppProps, IAppState> {
                     height="480"
                     style={{ border: '1px solid black' }}
                     ref={this.gameCanvas}
-                ></canvas>
-                <p>
-                    <button onClick={() => this.move('right')}>Right</button>
-                    <button onClick={() => this.move('left')}>Left</button>
-                    <button onClick={() => this.move('up')}>Up</button>
-                    <button onClick={() => this.move('down')}>Down</button>
-                </p>
+                />
             </>
         );
     }

@@ -17,7 +17,7 @@ class App extends React.Component<IAppProps, IAppState> {
 
     constructor(props: IAppProps) {
         super(props);
-        this.socket = io('http://localhost:3001');
+        this.socket = io('https://randombot-server.herokuapp.com');
 
         setInterval(() => {
             this.update();

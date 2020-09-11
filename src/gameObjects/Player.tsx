@@ -1,5 +1,5 @@
-import React from 'react';
-import { Vector3, Mesh, Texture } from '@babylonjs/core';
+import { Vector3, Mesh, Color3, Scene, MeshBuilder, StandardMaterial, DynamicTexture, Texture } from '@babylonjs/core';
+import { IMAGES } from '../utils/textures';
 
 export interface serializedPlayer {
     x: number;
@@ -15,7 +15,7 @@ export interface keyBindings {
     right: number;
 }
 
-const SPEED_CHANGE = 1;
+const SPEED_CHANGE = 0.2;
 const SLOWING = 0.95;
 const MODIFIER = 0.1;
 const SMOOTH_TIME = 50;
@@ -41,7 +41,32 @@ export class Player {
     };
     private keysPressed: number[] = [];
 
-    constructor(public id: string) {}
+    private mesh: Mesh;
+
+    constructor(private scene: Scene, public id: string) {
+        this.mesh = MeshBuilder.CreatePlane(
+            'chunk',
+            { width: 50, height: 50, sideOrientation: Mesh.BACKSIDE },
+            this.scene,
+        );
+        this.mesh.rotation = new Vector3(0, 0, Math.PI);
+
+        const texture = new DynamicTexture(
+            'chunkTexture',
+            { width: 16, height: 16 },
+            this.scene,
+            true,
+            Texture.NEAREST_NEAREST,
+        );
+
+        const ctx = texture.getContext();
+        ctx.drawImage(IMAGES.player, 0, 0, 16, 16);
+        texture.update();
+
+        const material = new StandardMaterial('mat', this.scene);
+        material.diffuseTexture = texture;
+        this.mesh.material = material;
+    }
 
     serialize(): serializedPlayer {
         return {
@@ -85,12 +110,16 @@ export class Player {
                 this.velocityX = this.finalVelocityX;
                 this.velocityY = this.finalVelocityY;
             }
+            // Update mesh
+            this.mesh.position = new Vector3(this.x, this.y, 0);
             return;
         }
 
         if (!this.keyBindings.up && !this.keyBindings.down && !this.keyBindings.left && !this.keyBindings.right) {
             this.x += this.velocityX;
             this.y += this.velocityY;
+            // Update mesh
+            this.mesh.position = new Vector3(this.x, this.y, 0);
             return;
         }
 
@@ -137,6 +166,9 @@ export class Player {
         if (Math.abs(this.velocityY) < 0.1) {
             this.velocityY = 0;
         }
+
+        // Update mesh
+        this.mesh.position = new Vector3(this.x, this.y, 0);
     }
 
     keyDown(keyCode: number) {
@@ -151,27 +183,7 @@ export class Player {
         }
     }
 
-    render(key: React.Key) {
-        return (
-            <plane
-                name="canvas"
-                size={1}
-                position={new Vector3(this.x * 0.01, this.y * 0.01, 0)}
-                sideOrientation={Mesh.BACKSIDE}
-                key={key}
-            >
-                <advancedDynamicTexture
-                    name="dialogTexture"
-                    height={100}
-                    width={100}
-                    createForParentMesh={true}
-                    hasAlpha={true}
-                    generateMipMaps={true}
-                    samplingMode={Texture.TRILINEAR_SAMPLINGMODE}
-                >
-                    <rectangle background={'#AAFF00'} name="rect-1" height={1} width={1} />
-                </advancedDynamicTexture>
-            </plane>
-        );
+    setVisibility(visible: boolean) {
+        this.mesh.setEnabled(visible);
     }
 }

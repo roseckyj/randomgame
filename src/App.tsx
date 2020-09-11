@@ -123,6 +123,8 @@ class App extends React.Component<IAppProps, IAppState> {
             player.tick(deltaTime);
         });
 
+        Object.values(this.chunks).forEach((chunk) => chunk.setVisibility(false));
+
         if (this.me) {
             for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 for (let y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
@@ -133,6 +135,8 @@ class App extends React.Component<IAppProps, IAppState> {
                     if (!Object.keys(this.chunks).includes(chunkId)) {
                         this.socket.emit('mapRequest', { x: chunkX, y: chunkY });
                         this.chunks[chunkId] = new Chunk(this.scene!, chunkX, chunkY);
+                    } else {
+                        this.chunks[chunkId].setVisibility(true);
                     }
                 }
             }

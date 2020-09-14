@@ -65,7 +65,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     }
 
     initGame(id: string) {
-        this.me = new Player(this.babylonScene!, id);
+        this.me = new Player(id);
+        this.me.attachBabylon(this.babylonScene!);
         this.me.bindKeys(CONTROLS_WASD);
         this.gameScene.players.add(id, this.me);
 
@@ -82,15 +83,15 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         if (this.me) {
             for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 for (let y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
-                    const chunkX = Math.round(this.me.x / 1600) + x;
-                    const chunkY = Math.round(this.me.y / 1600) + y;
+                    const chunkX = Math.round(this.me.position.x / 1600) + x;
+                    const chunkY = Math.round(this.me.position.y / 1600) + y;
                     const chunkId = Chunk.getId(chunkX, chunkY);
 
                     if (this.gameScene.chunks.includes(chunkId)) {
                         this.gameScene.chunks.get(chunkId).setVisibility(true);
                     } else {
                         this.networkClient.requestChunk(chunkX, chunkY);
-                        this.gameScene.chunks.add(chunkId, new Chunk(this.babylonScene!, chunkX, chunkY));
+                        this.gameScene.chunks.add(chunkId, new Chunk(chunkX, chunkY).attachBabylon(this.babylonScene!));
                     }
                 }
             }
@@ -122,14 +123,16 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             const gui = guiTexture.getContext();
             gui.clearRect(0, 0, guiTexture.getSize().width, guiTexture.getSize().height);
             gui.fillText(
-                this.me ? Math.round(this.me.x / 100) + ' × ' + Math.round(this.me.y / 100) : 'Not connected...',
+                this.me
+                    ? Math.round(this.me.position.x / 100) + ' × ' + Math.round(this.me.position.y / 100)
+                    : 'Not connected...',
                 20,
                 30,
             );
             guiTexture.update();
 
             if (this.me) {
-                camera.position = new Vector3(this.me.x, -this.me.y, -Z_DISTANCE);
+                camera.position = new Vector3(this.me.position.x, -this.me.position.y, -Z_DISTANCE);
             }
 
             if (scene) {

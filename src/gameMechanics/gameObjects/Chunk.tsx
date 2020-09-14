@@ -1,7 +1,5 @@
-import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture } from '@babylonjs/core';
-import { serializedGameObject } from './GameObject';
-import { drawTexture, TEXTURE_RESOLUTION, createTexture } from '../textures/textureEngine';
-import { textures } from '../textures/rexturePack';
+import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from '@babylonjs/core';
+import { AbstractGameObject } from './AbstractGameObject';
 
 export type tileType = number;
 
@@ -9,54 +7,63 @@ export interface serializedChunk {
     x: number;
     y: number;
     ground: tileType[][];
-    objects: serializedGameObject[];
 }
 
-export class Chunk {
+export class Chunk extends AbstractGameObject {
     private ground: tileType[][] = [[]];
-    // private objects: GameObject[];
 
-    private upToDate: boolean = false;
+    constructor(x: number, y: number) {
+        super();
+        this.position = new Vector2(x, y);
+    }
 
-    private mesh: Mesh;
+    get id(): string {
+        return Chunk.getId(this.position.x, this.position.y);
+    }
 
-    constructor(private scene: Scene, public x: number, public y: number) {
+    serialize(): serializedChunk {
+        return {
+            x: this.position.x,
+            y: this.position.y,
+            ground: this.ground,
+        };
+    }
+
+    deserialize(serialized: serializedChunk): void {
+        this.position.x = serialized.x;
+        this.position.y = serialized.y;
+        this.ground = serialized.ground;
+
+        this.updateMesh();
+    }
+
+    static getId(x: number, y: number): string {
+        return x.toString() + 'x' + y.toString();
+    }
+
+    // ========== BABYLON ===========
+
+    attachBabylon(scene: Scene) {
+        super.attachBabylon(scene);
+
         this.mesh = MeshBuilder.CreatePlane(
             'chunk',
             { width: 1600, height: 1600, sideOrientation: Mesh.FRONTSIDE },
             this.scene,
         );
         this.updateMesh();
-    }
 
-    get id(): string {
-        return Chunk.getId(this.x, this.y);
-    }
-
-    serialize(): serializedChunk {
-        return {
-            x: this.x,
-            y: this.y,
-            ground: this.ground,
-            objects: [], //TODO
-        };
-    }
-
-    deserialize(serialized: serializedChunk): void {
-        this.x = serialized.x;
-        this.y = serialized.y;
-        this.ground = serialized.ground;
-        // this.objects = [] // TODO: map => GameObject.deserialize();
-
-        this.upToDate = true;
-        console.log(this.ground);
-        this.updateMesh();
+        return this;
     }
 
     async updateMesh() {
-        this.mesh.position = new Vector3(this.x * 16 * 100, -this.y * 16 * 100, 0);
+        if (!this.mesh || !this.scene) {
+            console.warn('Updating mesh but Babylon not attached! (chunk id ' + this.id + ')');
+            return;
+        }
 
-        //const texture = createTexture('grass_01', this.scene);
+        this.mesh.position = new Vector3(this.position.x * 16 * 100, -this.position.y * 16 * 100, 0);
+        console.log(this.mesh.position);
 
         const texture = new DynamicTexture(
             'chunkTexture',
@@ -80,37 +87,10 @@ export class Chunk {
             }
         }
 
-        /*
-        for (let i = 0; i < 20; i++) {
-            const rnd = (Math.floor(Math.random() * 100) % 3) + 1;
-            const x = Math.random() * 15 * TEXTURE_RESOLUTION;
-            const y = Math.random() * 15 * TEXTURE_RESOLUTION;
-
-            if (this.ground.length === 16 && this.ground[0].length === 16) {
-                switch (this.ground[Math.floor(x / 16)][Math.floor(y / 16)]) {
-                    case 1:
-                        // Grass
-                        drawTexture(ctx, 'grass_0' + rnd, x, y);
-                        break;
-                    default:
-                        continue;
-                }
-            }
-        }
-        */
-
         texture.update();
 
         const material = new StandardMaterial('mat', this.scene);
         material.emissiveTexture = texture;
         this.mesh.material = material;
-    }
-
-    setVisibility(visible: boolean) {
-        this.mesh.setEnabled(visible);
-    }
-
-    static getId(x: number, y: number): string {
-        return x.toString() + 'x' + y.toString();
     }
 }

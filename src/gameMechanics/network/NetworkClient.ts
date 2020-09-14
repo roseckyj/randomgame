@@ -61,14 +61,18 @@ export class NetworkClient {
                     return;
                 }
 
-                this.scene.players.updateOrCreate(key, data[key], () => new Player(this.getBabylonScene(), key));
+                this.scene.players.updateOrCreate(key, data[key], () =>
+                    new Player(key).attachBabylon(this.getBabylonScene()),
+                );
             });
         });
 
         this.socket.on('mapChunk', (data: serializedChunk) => {
             const id = Chunk.getId(data.x, data.y);
 
-            this.scene.chunks.updateOrCreate(id, data, () => new Chunk(this.getBabylonScene(), data.x, data.y));
+            this.scene.chunks.updateOrCreate(id, data, () =>
+                new Chunk(data.x, data.y).attachBabylon(this.getBabylonScene()),
+            );
             // TODO: throw away unused chunks
         });
     }

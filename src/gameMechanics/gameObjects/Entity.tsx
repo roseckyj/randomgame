@@ -1,4 +1,4 @@
-export interface serializedGameObject {
+export interface serializedEntity {
     x: number;
     y: number;
     type: number;

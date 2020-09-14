@@ -4,6 +4,11 @@ import { Chunk } from './gameObjects/Chunk';
 export class GameScene {
     players = new IndexedList<Player>();
     chunks = new IndexedList<Chunk>();
+
+    tickAll(deltaTime: number) {
+        this.players.forEach((value) => value.tick(deltaTime));
+        this.chunks.forEach((value) => value.tick(deltaTime));
+    }
 }
 
 class IndexedList<T extends Player | Chunk> {

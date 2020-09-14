@@ -1,5 +1,6 @@
-import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture, Material } from '@babylonjs/core';
+import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture } from '@babylonjs/core';
 import { createTexture, createMaterial } from '../textures/textureEngine';
+import { AbstractGameObject } from './AbstractGameObject';
 
 export interface serializedPlayer {
     x: number;
@@ -20,13 +21,9 @@ const SLOWING = 0.95;
 const MODIFIER = 0.1;
 const SMOOTH_TIME = 50;
 
-export class Player {
-    public x: number = 0;
-    public y: number = 0;
+export class Player extends AbstractGameObject {
     private velocityX: number = 0;
     private velocityY: number = 0;
-
-    private rotation: number = 1;
 
     // SMOOTHING
     private targetX: number = 0;
@@ -43,9 +40,133 @@ export class Player {
     };
     private keysPressed: number[] = [];
 
-    private mesh: Mesh;
+    constructor(public id: string) {
+        super();
+    }
 
-    constructor(private scene: Scene, public id: string) {
+    serialize(): serializedPlayer {
+        return {
+            x: this.position.x,
+            y: this.position.y,
+            velocityX: this.velocityX,
+            velocityY: this.velocityY,
+        };
+    }
+
+    deserialize(serialized: serializedPlayer, smooth?: boolean): void {
+        if (smooth) {
+            this.targetX = serialized.x;
+            this.targetY = serialized.y;
+            this.finalVelocityX = serialized.velocityX;
+            this.finalVelocityY = serialized.velocityY;
+            this.targetTime = SMOOTH_TIME;
+            this.velocityX = (serialized.x - this.position.x) / SMOOTH_TIME;
+            this.velocityY = (serialized.y - this.position.y) / SMOOTH_TIME;
+        } else {
+            this.position.x = serialized.x;
+            this.position.y = serialized.y;
+            this.velocityX = serialized.velocityX;
+            this.velocityY = serialized.velocityY;
+        }
+    }
+
+    tick(deltaTime: number) {
+        if (this.targetTime > 0) {
+            this.position.x += this.velocityX * deltaTime;
+            this.position.y += this.velocityY * deltaTime;
+            this.targetTime -= deltaTime;
+
+            if (this.targetTime <= 0) {
+                this.position.x = this.targetX;
+                this.position.y = this.targetY;
+                this.velocityX = this.finalVelocityX;
+                this.velocityY = this.finalVelocityY;
+            }
+
+            this.updateMesh();
+            return;
+        }
+
+        if (!this.keyBindings.up && !this.keyBindings.down && !this.keyBindings.left && !this.keyBindings.right) {
+            this.position.x += this.velocityX;
+            this.position.y += this.velocityY;
+
+            this.updateMesh();
+            return;
+        }
+
+        const deltaTimeModified = MODIFIER * deltaTime;
+
+        let movingX = false;
+        let movingY = false;
+
+        const diagonalModifier = Math.sqrt(2);
+
+        if (this.keysPressed.includes(this.keyBindings.left) || this.keysPressed.includes(this.keyBindings.right)) {
+            movingX = true;
+        }
+        if (this.keysPressed.includes(this.keyBindings.up) || this.keysPressed.includes(this.keyBindings.down)) {
+            movingY = true;
+        }
+
+        if (this.keysPressed.includes(this.keyBindings.left)) {
+            // Left
+            this.velocityX -= (SPEED_CHANGE * deltaTimeModified) / (movingY ? diagonalModifier : 1);
+        }
+        if (this.keysPressed.includes(this.keyBindings.right)) {
+            // Right
+            this.velocityX += (SPEED_CHANGE * deltaTimeModified) / (movingY ? diagonalModifier : 1);
+        }
+        if (this.keysPressed.includes(this.keyBindings.up)) {
+            // Up
+            this.velocityY -= (SPEED_CHANGE * deltaTimeModified) / (movingX ? diagonalModifier : 1);
+        }
+        if (this.keysPressed.includes(this.keyBindings.down)) {
+            // Down
+            this.velocityY += (SPEED_CHANGE * deltaTimeModified) / (movingX ? diagonalModifier : 1);
+        }
+
+        this.position.x += this.velocityX * deltaTimeModified;
+        this.position.y += this.velocityY * deltaTimeModified;
+
+        this.velocityX *= Math.pow(SLOWING, deltaTimeModified);
+        this.velocityY *= Math.pow(SLOWING, deltaTimeModified);
+
+        if (Math.abs(this.velocityX) < 0.1) {
+            this.velocityX = 0;
+        }
+        if (Math.abs(this.velocityY) < 0.1) {
+            this.velocityY = 0;
+        }
+
+        this.updateMesh();
+    }
+
+    // ========== CONTROLS ===========
+
+    keyDown(keyCode: number) {
+        if (!this.keysPressed.includes(keyCode)) {
+            this.keysPressed.push(keyCode);
+        }
+    }
+
+    keyUp(keyCode: number) {
+        if (this.keysPressed.includes(keyCode)) {
+            this.keysPressed = this.keysPressed.filter((key) => key !== keyCode);
+        }
+    }
+
+    bindKeys(newBindings: Partial<keyBindings>) {
+        this.keyBindings = { ...this.keyBindings, ...newBindings };
+    }
+
+    // ========== BABYLON ===========
+
+    attachBabylon(scene: Scene) {
+        super.attachBabylon(scene);
+
+        if (!this.scene) return this;
+
         this.mesh = MeshBuilder.CreatePlane(
             'player',
             { width: 60, height: 100, sideOrientation: Mesh.FRONTSIDE },
@@ -87,134 +208,11 @@ export class Player {
         title.material = createMaterial(titleTexture, this.scene);
 
         this.updateMesh();
+
+        return this;
     }
 
-    serialize(): serializedPlayer {
-        return {
-            x: this.x,
-            y: this.y,
-            velocityX: this.velocityX,
-            velocityY: this.velocityY,
-        };
-    }
-
-    deserialize(serialized: serializedPlayer, smooth?: boolean): void {
-        if (smooth) {
-            this.targetX = serialized.x;
-            this.targetY = serialized.y;
-            this.finalVelocityX = serialized.velocityX;
-            this.finalVelocityY = serialized.velocityY;
-            this.targetTime = SMOOTH_TIME;
-            this.velocityX = (serialized.x - this.x) / SMOOTH_TIME;
-            this.velocityY = (serialized.y - this.y) / SMOOTH_TIME;
-        } else {
-            this.x = serialized.x;
-            this.y = serialized.y;
-            this.velocityX = serialized.velocityX;
-            this.velocityY = serialized.velocityY;
-        }
-    }
-
-    bindKeys(newBindings: Partial<keyBindings>) {
-        this.keyBindings = { ...this.keyBindings, ...newBindings };
-    }
-
-    tick(deltaTime: number) {
-        if (this.targetTime > 0) {
-            this.x += this.velocityX * deltaTime;
-            this.y += this.velocityY * deltaTime;
-            this.targetTime -= deltaTime;
-
-            if (this.targetTime <= 0) {
-                this.x = this.targetX;
-                this.y = this.targetY;
-                this.velocityX = this.finalVelocityX;
-                this.velocityY = this.finalVelocityY;
-            }
-
-            this.updateMesh();
-            return;
-        }
-
-        if (!this.keyBindings.up && !this.keyBindings.down && !this.keyBindings.left && !this.keyBindings.right) {
-            this.x += this.velocityX;
-            this.y += this.velocityY;
-
-            this.updateMesh();
-            return;
-        }
-
-        const deltaTimeModified = MODIFIER * deltaTime;
-
-        let movingX = false;
-        let movingY = false;
-
-        const diagonalModifier = Math.sqrt(2);
-
-        if (this.keysPressed.includes(this.keyBindings.left) || this.keysPressed.includes(this.keyBindings.right)) {
-            movingX = true;
-        }
-        if (this.keysPressed.includes(this.keyBindings.up) || this.keysPressed.includes(this.keyBindings.down)) {
-            movingY = true;
-        }
-
-        if (this.keysPressed.includes(this.keyBindings.left)) {
-            // Left
-            this.velocityX -= (SPEED_CHANGE * deltaTimeModified) / (movingY ? diagonalModifier : 1);
-        }
-        if (this.keysPressed.includes(this.keyBindings.right)) {
-            // Right
-            this.velocityX += (SPEED_CHANGE * deltaTimeModified) / (movingY ? diagonalModifier : 1);
-        }
-        if (this.keysPressed.includes(this.keyBindings.up)) {
-            // Up
-            this.velocityY -= (SPEED_CHANGE * deltaTimeModified) / (movingX ? diagonalModifier : 1);
-        }
-        if (this.keysPressed.includes(this.keyBindings.down)) {
-            // Down
-            this.velocityY += (SPEED_CHANGE * deltaTimeModified) / (movingX ? diagonalModifier : 1);
-        }
-
-        this.x += this.velocityX * deltaTimeModified;
-        this.y += this.velocityY * deltaTimeModified;
-
-        this.velocityX *= Math.pow(SLOWING, deltaTimeModified);
-        this.velocityY *= Math.pow(SLOWING, deltaTimeModified);
-
-        if (Math.abs(this.velocityX) < 0.1) {
-            this.velocityX = 0;
-        }
-        if (Math.abs(this.velocityY) < 0.1) {
-            this.velocityY = 0;
-        }
-
-        this.updateMesh();
-    }
-
-    updateMesh() {
-        this.mesh.position = new Vector3(this.x, -this.y, -1);
-
-        if (this.velocityX < 0) {
-            this.rotation = -1;
-        }
-        if (this.velocityX > 0) {
-            this.rotation = 1;
-        }
-    }
-
-    keyDown(keyCode: number) {
-        if (!this.keysPressed.includes(keyCode)) {
-            this.keysPressed.push(keyCode);
-        }
-    }
-
-    keyUp(keyCode: number) {
-        if (this.keysPressed.includes(keyCode)) {
-            this.keysPressed = this.keysPressed.filter((key) => key !== keyCode);
-        }
-    }
-
-    setVisibility(visible: boolean) {
-        this.mesh.setEnabled(visible);
+    async updateMesh() {
+        if (this.mesh) this.mesh.position = new Vector3(this.position.x, -this.position.y, -1);
     }
 }

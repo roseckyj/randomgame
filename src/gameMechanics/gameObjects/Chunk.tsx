@@ -62,7 +62,6 @@ export class Chunk extends AbstractGameObject {
         }
 
         this.mesh.position = new Vector3(this.position.x * 16 * 100, -this.position.y * 16 * 100, 0);
-        console.log(this.mesh.position);
 
         const texture = new DynamicTexture(
             'chunkTexture',

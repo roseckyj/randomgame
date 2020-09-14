@@ -72,6 +72,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.me.bindKeys(CONTROLS_WASD);
         this.gameScene.players.add(id, this.me);
 
+        (window as any).player = this.me;
+
         this.timer = setInterval(() => {
             if (this.me) this.networkClient.sendPlayerUpdate(this.me);
         }, 100);

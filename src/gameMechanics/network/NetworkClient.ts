@@ -50,9 +50,9 @@ export class NetworkClient {
         this.socket.on('players', (data: messagePlayers) => {
             this.scene.players.forEach((player, key) => {
                 if (!Object.keys(data).includes(key)) {
-                    this.scene.players.get(key).setVisibility(false);
+                    this.scene.players.get(key)!.setVisibility(false);
                 } else {
-                    this.scene.players.get(key).setVisibility(true);
+                    this.scene.players.get(key)!.setVisibility(true);
                 }
             });
 

@@ -19,6 +19,7 @@ class IndexedList<T extends Player | Chunk> {
     }
 
     remove(key: string) {
+        if (!this.includes(key)) return;
         delete this.values[key];
     }
 
@@ -34,6 +35,7 @@ class IndexedList<T extends Player | Chunk> {
     }
 
     get(key: string) {
+        if (!this.includes(key)) return null;
         return this.values[key];
     }
 

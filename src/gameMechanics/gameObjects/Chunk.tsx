@@ -10,7 +10,7 @@ export interface serializedChunk {
 }
 
 export class Chunk extends AbstractGameObject {
-    private ground: tileType[][] = [[]];
+    ground: tileType[][] = [[]];
 
     constructor(x: number, y: number) {
         super();
@@ -58,7 +58,6 @@ export class Chunk extends AbstractGameObject {
 
     async updateMesh() {
         if (!this.mesh || !this.scene) {
-            console.warn('Updating mesh but Babylon not attached! (chunk id ' + this.id + ')');
             return;
         }
 
@@ -75,14 +74,16 @@ export class Chunk extends AbstractGameObject {
 
         const ctx = texture.getContext();
 
-        ctx.fillStyle = '#CFDA78';
-        ctx.fillRect(0, 0, texture.getSize().width, texture.getSize().height);
-
-        ctx.fillStyle = '#00000005';
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
-                if ((x + y) % 2 === 0) {
+                if (this.ground[x] && this.ground[x][y]) {
+                    ctx.fillStyle = Chunk.getTerrainColor(this.ground[x][y]);
+
                     ctx.fillRect(x, y, 1, 1);
+                    if ((x + y) % 2 === 0) {
+                        ctx.fillStyle = '#00000005';
+                        ctx.fillRect(x, y, 1, 1);
+                    }
                 }
             }
         }
@@ -92,5 +93,19 @@ export class Chunk extends AbstractGameObject {
         const material = new StandardMaterial('mat', this.scene);
         material.emissiveTexture = texture;
         this.mesh.material = material;
+    }
+
+    static getTerrainColor(number: number): string {
+        switch (number) {
+            case 1: // Grass
+                return '#CFDA78';
+            case 2: // Water
+                return '#4EDCF0';
+            case 3: // Forrest
+                return '#6AA981';
+            case 4: // Sand
+                return '#FDDC86';
+        }
+        return '#DDDDDD';
     }
 }

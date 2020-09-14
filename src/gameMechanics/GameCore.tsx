@@ -1,7 +1,7 @@
 import React from 'react';
 
 import '@babylonjs/core/Physics/physicsEngineComponent';
-import babylonjs, { Vector3, UniversalCamera } from '@babylonjs/core';
+import babylonjs, { Vector3, UniversalCamera, Texture } from '@babylonjs/core';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
@@ -10,9 +10,10 @@ import { Chunk } from './gameObjects/Chunk';
 import { GameScene } from './Scene';
 import { CONTROLS_WASD } from '../keyBindings';
 import { NetworkClient } from './network/NetworkClient';
+import { minimap } from './gui/minimap';
 
-const Z_DISTANCE = 1000;
-const RENDER_DISTANCE = 1;
+const Z_DISTANCE = 1500;
+const RENDER_DISTANCE = 3;
 
 interface IGameCoreProps {
     apiUrl: string;
@@ -25,6 +26,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     me: Player | null = null;
 
     babylonScene: babylonjs.Scene | null;
+    guiTexture: AdvancedDynamicTexture | null;
     networkClient: NetworkClient;
     state: IGameCoreState = {};
 
@@ -80,7 +82,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
 
         this.gameScene.chunks.forEach((chunk) => chunk.setVisibility(false));
 
-        if (this.me) {
+        if (this.me && this.guiTexture) {
             for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 for (let y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
                     const chunkX = Math.round(this.me.position.x / 1600) + x;
@@ -88,13 +90,22 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                     const chunkId = Chunk.getId(chunkX, chunkY);
 
                     if (this.gameScene.chunks.includes(chunkId)) {
-                        this.gameScene.chunks.get(chunkId).setVisibility(true);
+                        this.gameScene.chunks.get(chunkId)!.setVisibility(true);
                     } else {
                         this.networkClient.requestChunk(chunkX, chunkY);
                         this.gameScene.chunks.add(chunkId, new Chunk(chunkX, chunkY).attachBabylon(this.babylonScene!));
                     }
                 }
             }
+
+            const gui = this.guiTexture.getContext();
+            const width = this.guiTexture.getSize().width;
+            const height = this.guiTexture.getSize().height;
+            gui.clearRect(0, 0, width, height);
+
+            minimap(this.guiTexture, this.gameScene, this.me);
+
+            this.guiTexture.update();
         }
     }
 
@@ -115,21 +126,10 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         camera.rotation = new Vector3(0, 0, 0);
         //camera.attachControl(event.canvas, true);
 
-        const guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('GUI', true, scene);
+        this.guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('GUI', true, scene);
 
         scene.getEngine().runRenderLoop(() => {
             this.tick(scene.getEngine().getDeltaTime());
-
-            const gui = guiTexture.getContext();
-            gui.clearRect(0, 0, guiTexture.getSize().width, guiTexture.getSize().height);
-            gui.fillText(
-                this.me
-                    ? Math.round(this.me.position.x / 100) + ' × ' + Math.round(this.me.position.y / 100)
-                    : 'Not connected...',
-                20,
-                30,
-            );
-            guiTexture.update();
 
             if (this.me) {
                 camera.position = new Vector3(this.me.position.x, -this.me.position.y, -Z_DISTANCE);
@@ -145,7 +145,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         return (
             <>
                 <Engine antialias={true} canvasId="game">
-                    <Scene onSceneMount={(event) => this.onSceneMount(event)}>
+                    <Scene onSceneMount={(event: SceneEventArgs) => this.onSceneMount(event)}>
                         <></>
                     </Scene>
                 </Engine>

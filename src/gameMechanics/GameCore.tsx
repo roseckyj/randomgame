@@ -13,7 +13,7 @@ import { NetworkClient } from './network/NetworkClient';
 import { minimap } from './gui/minimap';
 
 const Z_DISTANCE = 1500;
-const RENDER_DISTANCE = 3;
+const RENDER_DISTANCE = 2;
 
 interface IGameCoreProps {
     apiUrl: string;

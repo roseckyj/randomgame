@@ -1,4 +1,4 @@
-import { serializedPlayer } from "./gameObjects/Player";
+import { serializedPlayer } from "./gameMechanics/gameObjects/Player";
 
 export interface messageUpdate {
     id: number;

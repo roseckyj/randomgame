@@ -1,4 +1,4 @@
-import { keyBindings } from './gameObjects/Player';
+import { keyBindings } from './gameMechanics/gameObjects/Player';
 
 // ARROWS
 export const CONTROLS_ARROWS: keyBindings = {

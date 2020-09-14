@@ -2,6 +2,7 @@
   "name": "randomgame",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://roseckyj.github.io/randomgame",
   "dependencies": {
     "@babylonjs/core": "^4.1.0",
     "@babylonjs/gui": "^4.1.0",
@@ -30,7 +31,10 @@
   },
   "scripts": {
     "frontend-develop": "cross-env PORT=9976 react-scripts start",
-    "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\""
+    "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\"",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -48,6 +52,7 @@
     ]
   },
   "devDependencies": {
+    "gh-pages": "^3.1.0",
     "onchange": "^7.0.2",
     "prettier": "^2.1.1"
   }

@@ -1,15 +1,4 @@
-import {
-    Vector3,
-    Mesh,
-    Scene,
-    MeshBuilder,
-    StandardMaterial,
-    DynamicTexture,
-    Texture,
-    Color4,
-    Color3,
-    Vector2,
-} from '@babylonjs/core';
+import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture, Material } from '@babylonjs/core';
 import { createTexture, createMaterial } from '../textures/textureEngine';
 
 export interface serializedPlayer {
@@ -62,7 +51,6 @@ export class Player {
             { width: 60, height: 100, sideOrientation: Mesh.FRONTSIDE },
             this.scene,
         );
-
         const texture = createTexture('player', this.scene);
         this.mesh.material = createMaterial(texture, this.scene);
 
@@ -97,6 +85,8 @@ export class Player {
 
         title.parent = this.mesh;
         title.material = createMaterial(titleTexture, this.scene);
+
+        this.updateMesh();
     }
 
     serialize(): serializedPlayer {
@@ -209,13 +199,6 @@ export class Player {
         }
         if (this.velocityX > 0) {
             this.rotation = 1;
-        }
-
-        if (this.rotation === -1) {
-            // TODO
-            //this.mesh.rotation = new Vector3(0, Math.PI, 0);
-        } else {
-            //this.mesh.rotation = new Vector3(0, 0, 0);
         }
     }
 

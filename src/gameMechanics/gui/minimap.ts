@@ -50,13 +50,16 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
 }
 
 function getTile(x: number, y: number, scene: GameScene) {
-    const chunkX = Math.floor(x / 16);
-    const chunkY = Math.floor(y / 16);
+    const calcX = Math.floor(x) + 8;
+    const calcY = Math.floor(y) + 8;
+
+    const chunkX = Math.floor(calcX / 16);
+    const chunkY = Math.floor(calcY / 16);
     const chunk = scene.chunks.get(Chunk.getId(chunkX, chunkY));
 
-    if (!chunk || !chunk.ground[Math.floor(x) - chunkX * 16] || !chunk.ground[Math.floor(x) - chunkX * 16][Math.floor(y) - chunkY * 16]) {
+    if (!chunk || !chunk.ground[calcX - chunkX * 16] || !chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16]) {
         return -1;
     }
 
-    return chunk.ground[Math.floor(x) - chunkX * 16][Math.floor(y) - chunkY * 16];
+    return chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16];
 }

@@ -73,6 +73,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.gameScene.players.add(id, this.me);
 
         (window as any).player = this.me;
+        (window as any).scene = this.gameScene;
 
         this.timer = setInterval(() => {
             if (this.me) this.networkClient.sendPlayerUpdate(this.me);

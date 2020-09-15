@@ -1,6 +1,7 @@
 import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture } from '@babylonjs/core';
-import { createTexture, createMaterial } from '../textures/textureEngine';
+import { createMaterial } from '../textures/textureEngine';
 import { AbstractGameObject } from './AbstractGameObject';
+import { AnimatedTexture } from '../textures/AnimatedTexture';
 
 export interface serializedPlayer {
     x: number;
@@ -39,6 +40,8 @@ export class Player extends AbstractGameObject {
         right: 0,
     };
     private keysPressed: number[] = [];
+
+    private texture: AnimatedTexture;
 
     constructor(public id: string) {
         super();
@@ -169,30 +172,30 @@ export class Player extends AbstractGameObject {
 
         this.mesh = MeshBuilder.CreatePlane(
             'player',
-            { width: 60, height: 100, sideOrientation: Mesh.FRONTSIDE },
+            { width: 100, height: 200, sideOrientation: Mesh.FRONTSIDE },
             this.scene,
         );
-        const texture = createTexture('player', this.scene);
-        this.mesh.material = createMaterial(texture, this.scene);
+        this.texture = new AnimatedTexture('player', this.scene, 'default');
+        this.mesh.material = createMaterial(this.texture.getTexture(), this.scene);
 
         // Player title
         const title = MeshBuilder.CreatePlane(
             'title',
-            { width: 100, height: 20, sideOrientation: Mesh.FRONTSIDE },
+            { width: 120, height: 25, sideOrientation: Mesh.FRONTSIDE },
             this.scene,
         );
-        title.position = new Vector3(0, 60, -3);
+        title.position = new Vector3(0, 110, -3);
         const titleTexture = new DynamicTexture(
             'titleTexture',
-            { width: 100, height: 20 },
+            { width: 120, height: 25 },
             this.scene,
             true,
-            Texture.NEAREST_LINEAR,
+            Texture.BILINEAR_SAMPLINGMODE,
         );
         const ctx = titleTexture.getContext();
         ctx.fillStyle = '#000000AA';
         ctx.fillRect(0, 0, titleTexture.getSize().width, titleTexture.getSize().height);
-        ctx.font = '15px Arial';
+        ctx.font = '18px Arial';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#FFFFFF';
@@ -213,6 +216,18 @@ export class Player extends AbstractGameObject {
     }
 
     async updateMesh() {
-        if (this.mesh) this.mesh.position = new Vector3(this.position.x, -this.position.y, -1);
+        if (!this.mesh) return;
+        this.mesh.position = new Vector3(this.position.x, -this.position.y, -1);
+
+        const WALKING_THRESHOLD = 1;
+        if (Math.abs(this.velocityX) > WALKING_THRESHOLD || Math.abs(this.velocityY) > WALKING_THRESHOLD) {
+            if (!this.texture.isLast('walking')) {
+                this.texture.queueAnimation('walking');
+            }
+        } else {
+            if (!this.texture.isLast('default')) {
+                this.texture.queueAnimation('default');
+            }
+        }
     }
 }

@@ -150,11 +150,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 gui.textBaseline = 'middle';
                 gui.textAlign = 'center';
 
-                gui.fillText(
-                    'Connecting to server...',
-                    width / 2,
-                    height / 2,
-                );
+                gui.fillText('Connecting to server...', width / 2, height / 2);
 
                 this.guiTexture.update();
             }

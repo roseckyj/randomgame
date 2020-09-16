@@ -44,7 +44,13 @@ export function loadTextures(onLoad: () => void, onStateChange?: (loaded: number
 }
 
 export function createTexture(texture: string, scene: Scene) {
-    const t = new Texture(RESOURCES_LOCATION + textures[texture].filename, scene, false, true, Texture.NEAREST_SAMPLINGMODE);
+    const t = new Texture(
+        RESOURCES_LOCATION + textures[texture].filename,
+        scene,
+        false,
+        true,
+        Texture.NEAREST_SAMPLINGMODE,
+    );
     t.uOffset = 0;
     t.vOffset = 0;
     t.uScale = 1 / textures[texture].width;

@@ -34,11 +34,7 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
     gui.font = '15px pixel';
     gui.textBaseline = 'top';
     gui.textAlign = 'center';
-    gui.fillText(
-        'x',
-        x0,
-        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
-    );
+    gui.fillText('x', x0, y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10);
     gui.textAlign = 'right';
     gui.fillText(
         Math.round(me.position.x / 100).toString(),

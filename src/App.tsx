@@ -49,7 +49,16 @@ class App extends React.Component<IAppProps, IAppState> {
         return (
             <>
                 {this.state.status === 'loading' && (
-                    <div style={{ textAlign: 'center', position: "absolute", top: "50%", transform: "translate(0, -50%)", width: "100%", color: "white" }}>
+                    <div
+                        style={{
+                            textAlign: 'center',
+                            position: 'absolute',
+                            top: '50%',
+                            transform: 'translate(0, -50%)',
+                            width: '100%',
+                            color: 'white',
+                        }}
+                    >
                         Textures are loading ({this.state.textures.loaded}/{this.state.textures.of})
                     </div>
                 )}

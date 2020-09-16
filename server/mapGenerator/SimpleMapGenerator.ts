@@ -1,6 +1,9 @@
 import SimplexNoise from 'simplex-noise';
 import { AbstractMapGenerator } from './AbstractMapGenerator';
 import { Chunk } from '../../src/GameMechanics/gameObjects/Chunk';
+import { Tree } from '../../src/GameMechanics/gameObjects/Tree';
+import { uuid } from 'uuidv4';
+import { Vector2 } from '@babylonjs/core';
 
 export class SimpleMapGenerator extends AbstractMapGenerator {
     simplex = new SimplexNoise(super.seed.toString());
@@ -28,42 +31,31 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
     }
 
     getTerrainTile(x: number, y: number): number {
-        const WATER_SCALE = 0.004;
-        const BIOME_SCALE = 0.0008;
-        const FORREST_SCALE = 0.005;
+        const WATER_SCALE = 0.01;
+        const FORREST_SCALE = 0.01;
 
-        const river = this.simplex.noise3D(x * WATER_SCALE, y * WATER_SCALE, 0);
-        const biome =
-            (this.simplex.noise2D(x * BIOME_SCALE, y * BIOME_SCALE + 200) +
-                this.simplex.noise2D(x * 0.02, y * 0.02 + 400) * 0.2) /
-            1.2;
+        const water = this.simplex.noise3D(x * WATER_SCALE, y * WATER_SCALE, 0);
         const forrest = this.simplex.noise2D(x * FORREST_SCALE, y * FORREST_SCALE + 100);
 
-        /*
-        if (water > 0.7) {
-            return 2; // Lake (water)
-        }
-        if (water > 0.6 && forrest < -0.3) {
-            return 4; // Sand
-        }
-        if (forrest > 0.4) {
-            return 3; // Forrest
-        }
-        return 1; // Grass
-        */
-
-        if (biome < -0.3) {
-            // Ocean (water)
-            if (forrest < -0.6 && river < -0.5) {
-                // Island
-                return 1;
+        if (water > 0.6) {
+            if (water < 0.63 && forrest < -0.2) {
+                //return 4; // Sand
+                /* Disabled for now */
             }
-            return 2;
+            return 2; // Water
         }
+        if (forrest > 0) {
+            // Forrest
+            if ((x + y) % 2 === 0 || forrest > 0.6) {
+                const RANDOMNESS = 0.3;
 
-        if (forrest < -0.7) {
-            // Lake (water)
-            return 2;
+                const tree = new Tree(this.scene, uuid());
+                tree.position = new Vector2(
+                    x + Math.random() * 2 * RANDOMNESS - RANDOMNESS,
+                    y + Math.random() * 2 * RANDOMNESS - RANDOMNESS,
+                );
+                this.scene.entities.add(tree.id, tree);
+            }
         }
         return 1; // Grass
     }

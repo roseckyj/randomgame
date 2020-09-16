@@ -31,12 +31,24 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
     }
 
     gui.fillStyle = '#000000';
-    gui.font = '15px Arial';
+    gui.font = '15px pixel';
     gui.textBaseline = 'top';
     gui.textAlign = 'center';
     gui.fillText(
-        me ? Math.round(me.position.x / 100) + ' × ' + Math.round(me.position.y / 100) : 'Not connected...',
+        'x',
         x0,
+        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
+    );
+    gui.textAlign = 'right';
+    gui.fillText(
+        Math.round(me.position.x / 100).toString(),
+        x0 - 10,
+        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
+    );
+    gui.textAlign = 'left';
+    gui.fillText(
+        Math.round(me.position.y / 100).toString(),
+        x0 + 10,
         y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
     );
 

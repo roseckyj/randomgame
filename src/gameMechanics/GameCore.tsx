@@ -113,32 +113,51 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 chunk.setVisibility(true);
             }
         });
+        if (this.guiTexture) {
+            if (this.me) {
+                for (let x = -REQUEST_DISTANCE; x <= REQUEST_DISTANCE; x++) {
+                    for (let y = -REQUEST_DISTANCE; y <= REQUEST_DISTANCE; y++) {
+                        const chunkX = Math.round(this.me.position.x / 1600) + x;
+                        const chunkY = Math.round(this.me.position.y / 1600) + y;
+                        const chunkId = Chunk.getId(chunkX, chunkY);
 
-        if (this.me && this.guiTexture) {
-            for (let x = -REQUEST_DISTANCE; x <= REQUEST_DISTANCE; x++) {
-                for (let y = -REQUEST_DISTANCE; y <= REQUEST_DISTANCE; y++) {
-                    const chunkX = Math.round(this.me.position.x / 1600) + x;
-                    const chunkY = Math.round(this.me.position.y / 1600) + y;
-                    const chunkId = Chunk.getId(chunkX, chunkY);
-
-                    if (!this.gameScene.chunks.includes(chunkId)) {
-                        this.networkClient.requestChunk(chunkX, chunkY);
-                        this.gameScene.chunks.add(
-                            chunkId,
-                            new Chunk(this.gameScene, chunkX, chunkY).attachBabylon(this.babylonScene!),
-                        );
+                        if (!this.gameScene.chunks.includes(chunkId)) {
+                            this.networkClient.requestChunk(chunkX, chunkY);
+                            this.gameScene.chunks.add(
+                                chunkId,
+                                new Chunk(this.gameScene, chunkX, chunkY).attachBabylon(this.babylonScene!),
+                            );
+                        }
                     }
                 }
+
+                const gui = this.guiTexture.getContext();
+                const width = this.guiTexture.getSize().width;
+                const height = this.guiTexture.getSize().height;
+                gui.clearRect(0, 0, width, height);
+
+                minimap(this.guiTexture, this.gameScene, this.me);
+
+                this.guiTexture.update();
+            } else {
+                const gui = this.guiTexture.getContext();
+                const width = this.guiTexture.getSize().width;
+                const height = this.guiTexture.getSize().height;
+                gui.clearRect(0, 0, width, height);
+
+                gui.fillStyle = '#FFFFFF';
+                gui.font = '20px pixel';
+                gui.textBaseline = 'middle';
+                gui.textAlign = 'center';
+
+                gui.fillText(
+                    'Connecting to server...',
+                    width / 2,
+                    height / 2,
+                );
+
+                this.guiTexture.update();
             }
-
-            const gui = this.guiTexture.getContext();
-            const width = this.guiTexture.getSize().width;
-            const height = this.guiTexture.getSize().height;
-            gui.clearRect(0, 0, width, height);
-
-            minimap(this.guiTexture, this.gameScene, this.me);
-
-            this.guiTexture.update();
         }
     }
 

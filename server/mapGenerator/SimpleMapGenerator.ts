@@ -56,6 +56,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                 );
                 this.scene.entities.add(tree.id, tree);
             }
+            return 1;
         }
         return 1; // Grass
     }

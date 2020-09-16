@@ -29,7 +29,8 @@
     "simplex-noise": "^2.4.0",
     "socket.io": "^2.3.0",
     "ts-node": "^9.0.0",
-    "typescript": "^4.0.2"
+    "typescript": "^4.0.2",
+    "uuidv4": "^6.2.3"
   },
   "scripts": {
     "server-start": "ts-node --transpile-only --project ./tsconfig.json ./server/index.ts",

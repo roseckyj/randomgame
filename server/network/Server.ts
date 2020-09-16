@@ -20,13 +20,13 @@ export class NetworkServer {
 
     public open() {
         http.listen(this.port, () => {
-            console.info('██████████████████████████████████████████');
+            console.info('==========================================');
             console.info(`API is running at http://localhost:${this.port}`);
-            console.info('██████████████████████████████████████████');
+            console.info();
         });
     }
 
     public sendUpdates() {
-        // this.socket.emit('update', { id: player.id, content: player.serialize() });
+        this.socketServer.emit('players', this.scene.players.values);
     }
 }

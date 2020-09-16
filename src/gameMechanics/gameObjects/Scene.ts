@@ -1,5 +1,5 @@
-import { Player } from './gameObjects/Player';
-import { Chunk } from './gameObjects/Chunk';
+import { Player } from './Player';
+import { Chunk } from './Chunk';
 
 export class GameScene {
     players = new IndexedList<Player>();

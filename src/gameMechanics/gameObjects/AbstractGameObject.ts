@@ -1,5 +1,5 @@
 import { Mesh, Vector2, Scene } from '@babylonjs/core';
-import { GameScene } from '../Scene';
+import { GameScene } from './Scene';
 
 export abstract class AbstractGameObject {
     protected babylonScene: Scene | null = null;

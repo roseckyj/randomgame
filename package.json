@@ -25,11 +25,15 @@
     "react-dom": "^16.13.1",
     "react-reconciler": "^0.25.1",
     "react-scripts": "3.4.3",
+    "requestify": "^0.2.5",
+    "simplex-noise": "^2.4.0",
     "socket.io": "^2.3.0",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
   },
   "scripts": {
+    "server-start": "ts-node --transpile-only --project ./tsconfig.json ./server/index.ts",
+    "server-develop": "onchange -i -k \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run start",
     "frontend-develop": "cross-env PORT=9976 react-scripts start",
     "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\"",
     "predeploy": "npm run build",

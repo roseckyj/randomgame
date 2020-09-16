@@ -1,6 +1,6 @@
 import { Chunk } from '../gameObjects/Chunk';
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { GameScene } from '../Scene';
+import { GameScene } from '../gameObjects/Scene';
 import { Player } from '../gameObjects/Player';
 
 const MINIMAP_DISTANCE = 32;

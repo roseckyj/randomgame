@@ -2,7 +2,7 @@ import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture } from '@bab
 import { createMaterial } from '../textures/textureEngine';
 import { AbstractGameObject } from './AbstractGameObject';
 import { AnimatedTexture } from '../textures/AnimatedTexture';
-import { GameScene } from '../Scene';
+import { GameScene } from './Scene';
 
 export interface serializedPlayer {
     x: number;

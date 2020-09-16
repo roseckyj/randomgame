@@ -7,9 +7,9 @@ import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { Player } from './gameObjects/Player';
 import { Chunk } from './gameObjects/Chunk';
-import { GameScene } from './Scene';
+import { GameScene } from './gameObjects/Scene';
 import { CONTROLS_WASD } from '../keyBindings';
-import { NetworkClient } from './network/NetworkClient';
+import { NetworkClient } from './network/Client';
 import { minimap } from './gui/minimap';
 
 const Z_DISTANCE = 1500;

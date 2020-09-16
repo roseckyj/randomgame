@@ -1,6 +1,6 @@
 import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from '@babylonjs/core';
 import { AbstractGameObject } from './AbstractGameObject';
-import { GameScene } from '../Scene';
+import { GameScene } from './Scene';
 import { getImage } from '../textures/textureEngine';
 
 export type tileType = number;
@@ -12,7 +12,7 @@ export interface serializedChunk {
 }
 
 export class Chunk extends AbstractGameObject {
-    ground: tileType[][] = [[]];
+    public ground: tileType[][] = [[]];
 
     private texture: DynamicTexture;
 

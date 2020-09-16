@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import { Player } from '../gameObjects/Player';
-import { GameScene } from '../Scene';
+import { GameScene } from '../gameObjects/Scene';
 import { messagePlayers } from '../../messageTypes';
 import babylonjs from '@babylonjs/core';
 import { serializedChunk, Chunk } from '../gameObjects/Chunk';

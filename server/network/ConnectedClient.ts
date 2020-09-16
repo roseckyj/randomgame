@@ -1,8 +1,9 @@
-import { GameScene } from "../../src/GameMechanics/gameObjects/Scene";
-import { messageMapRequest, messageUpdate } from "./messageTypes";
-import { AbstractMapGenerator } from "../mapGenerator/AbstractMapGenerator";
-import { Player } from "../../src/GameMechanics/gameObjects/Player";
+import { GameScene } from '../../src/GameMechanics/gameObjects/Scene';
+import { messageMapRequest } from '../../src/gameMechanics/network/messageTypes';
+import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
+import { Player, serializedPlayer } from '../../src/GameMechanics/gameObjects/Player';
 import { uuid } from 'uuidv4';
+import { serializedEntity } from '../../src/GameMechanics/gameObjects/01_AbstractGameEntity';
 
 const DISCONNECT_TIMEOUT = 10000;
 
@@ -18,15 +19,15 @@ export class ConnectedClient {
         this.aliveTimeout = setTimeout(() => this.die(), DISCONNECT_TIMEOUT);
 
         this.player = new Player(this.scene, uuid());
-        this.scene.players.add(this.player.id, this.player);
+        this.scene.entities.add(this.player.id, this.player);
     }
 
     private setListeners() {
-        this.socket.on('update', (data: messageUpdate) => {
-            this.scene.players.update(data.id, data.content, false);
+        this.socket.on('update', (data: serializedEntity<serializedPlayer>) => {
+            this.scene.entities.update(data.id, data, true, false);
             this.keepAlive();
         });
-    
+
         this.socket.on('mapRequest', (data: messageMapRequest) => {
             this.mapGenerator.generateChunk(data.x, data.y).then((chunk) => {
                 this.socket.emit('mapChunk', chunk.serialize());

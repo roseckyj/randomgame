@@ -1,9 +1,11 @@
 import io from 'socket.io-client';
-import { Player } from '../gameObjects/Player';
+import { Player, serializedPlayer } from '../gameObjects/Player';
 import { GameScene } from '../gameObjects/Scene';
-import { messagePlayers } from '../../messageTypes';
 import babylonjs from '@babylonjs/core';
 import { serializedChunk, Chunk } from '../gameObjects/Chunk';
+import { messageEntities } from './messageTypes';
+import { AbstractGameEntity, serializedEntity } from '../gameObjects/01_AbstractGameEntity';
+import { Tree } from '../gameObjects/Tree';
 
 type callback = (data: any) => void;
 
@@ -39,7 +41,8 @@ export class NetworkClient {
     }
 
     public sendPlayerUpdate(player: Player) {
-        this.socket.emit('update', { id: player.id, content: player.serialize() });
+        const payload: serializedEntity<serializedPlayer> = player.serialize();
+        this.socket.emit('update', payload);
     }
 
     public requestChunk(x: number, y: number) {
@@ -47,30 +50,17 @@ export class NetworkClient {
     }
 
     private setListeners() {
-        this.socket.on('players', (data: messagePlayers) => {
-            this.scene.players.forEach((player, key) => {
-                if (!Object.keys(data).includes(key)) {
-                    this.scene.players.get(key)!.setVisibility(false);
-                } else {
-                    this.scene.players.get(key)!.setVisibility(true);
-                }
-            });
-
-            Object.keys(data).forEach((key) => {
-                if (key === this.userId) {
-                    return;
-                }
-
-                this.scene.players.updateOrCreate(key, data[key], () =>
-                    new Player(this.scene, key).attachBabylon(this.getBabylonScene()),
-                );
-            });
+        this.socket.on('entity', (data: messageEntities) => {
+            data.removed.forEach((entity) => this.scene.entities.remove(entity.id));
+            data.updated.forEach((entity) =>
+                this.scene.entities.updateOrCreate(entity.id, entity, false, () => this.createEntity(entity)!),
+            );
         });
 
         this.socket.on('mapChunk', (data: serializedChunk) => {
             const id = Chunk.getId(data.x, data.y);
 
-            this.scene.chunks.updateOrCreate(id, data, () =>
+            this.scene.chunks.updateOrCreate(id, data, false, () =>
                 new Chunk(this.scene, data.x, data.y).attachBabylon(this.getBabylonScene()),
             );
 
@@ -78,5 +68,23 @@ export class NetworkClient {
                 .filter((value) => Math.abs(value.position.x - data.x) <= 1 && Math.abs(value.position.y - data.y) <= 1)
                 .forEach((value) => value.updateMesh());
         });
+    }
+
+    private createEntity(entity: serializedEntity<any>): AbstractGameEntity | undefined {
+        switch (entity.type) {
+            case 'player': {
+                const e = new Player(this.scene, entity.id);
+                e.attachBabylon(this.getBabylonScene());
+                e.deserialize(entity, false, true);
+                return e;
+            }
+            case 'tree': {
+                const e = new Tree(this.scene, entity.id);
+                e.attachBabylon(this.getBabylonScene());
+                e.deserialize(entity, false);
+                return e;
+            }
+        }
+        console.error('Entity "' + entity.type + ' does not exist!');
     }
 }

@@ -25,7 +25,7 @@ export abstract class AbstractGameObject {
 
     abstract serialize(): any;
 
-    abstract deserialize(serialized: any): void;
+    abstract deserialize(serialized: any, dirty: boolean, smooth?: boolean): void;
 
     tick(deltaTime: number): void {}
 

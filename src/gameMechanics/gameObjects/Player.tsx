@@ -1,12 +1,10 @@
 import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture } from '@babylonjs/core';
 import { createMaterial } from '../textures/textureEngine';
-import { AbstractGameObject } from './AbstractGameObject';
 import { AnimatedTexture } from '../textures/AnimatedTexture';
 import { GameScene } from './Scene';
+import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
 
 export interface serializedPlayer {
-    x: number;
-    y: number;
     velocityX: number;
     velocityY: number;
 }
@@ -23,7 +21,7 @@ const SLOWING = 0.95;
 const MODIFIER = 0.1;
 const SMOOTH_TIME = 50;
 
-export class Player extends AbstractGameObject {
+export class Player extends AbstractGameEntity {
     private velocityX: number = 0;
     private velocityY: number = 0;
 
@@ -49,30 +47,32 @@ export class Player extends AbstractGameObject {
         super(gameScene);
     }
 
-    serialize(): serializedPlayer {
-        return {
-            x: this.position.x,
-            y: this.position.y,
+    serialize(): serializedEntity<serializedPlayer> {
+        let sup = super.serialize() as serializedEntity<serializedPlayer>;
+        sup.type = Player.type;
+        sup.data = {
             velocityX: this.velocityX,
             velocityY: this.velocityY,
         };
+        return sup;
     }
 
-    deserialize(serialized: serializedPlayer, smooth?: boolean): void {
+    deserialize(serialized: serializedEntity<serializedPlayer>, dirty: boolean, smooth?: boolean): void {
         if (smooth) {
             this.targetX = serialized.x;
             this.targetY = serialized.y;
-            this.finalVelocityX = serialized.velocityX;
-            this.finalVelocityY = serialized.velocityY;
+            this.finalVelocityX = serialized.data.velocityX;
+            this.finalVelocityY = serialized.data.velocityY;
             this.targetTime = SMOOTH_TIME;
             this.velocityX = (serialized.x - this.position.x) / SMOOTH_TIME;
             this.velocityY = (serialized.y - this.position.y) / SMOOTH_TIME;
         } else {
             this.position.x = serialized.x;
             this.position.y = serialized.y;
-            this.velocityX = serialized.velocityX;
-            this.velocityY = serialized.velocityY;
+            this.velocityX = serialized.data.velocityX;
+            this.velocityY = serialized.data.velocityY;
         }
+        super.deserialize(serialized, dirty, smooth);
     }
 
     tick(deltaTime: number) {
@@ -131,6 +131,9 @@ export class Player extends AbstractGameObject {
             this.velocityY += (SPEED_CHANGE * deltaTimeModified) / (movingX ? diagonalModifier : 1);
         }
 
+        const ogX = this.position.x;
+        const ogY = this.position.y;
+
         this.position.x += this.velocityX * deltaTimeModified;
         this.position.y += this.velocityY * deltaTimeModified;
 
@@ -144,6 +147,10 @@ export class Player extends AbstractGameObject {
             this.velocityY = 0;
         }
 
+        if (ogX !== this.position.x || ogY !== this.position.y) {
+            // Should check speed also, but f*ck it
+            this.dirty = true;
+        }
         this.updateMesh();
     }
 
@@ -241,5 +248,9 @@ export class Player extends AbstractGameObject {
 
         // Mesh detached by super
         return super.detachBabylon();
+    }
+
+    static get type() {
+        return 'player';
     }
 }

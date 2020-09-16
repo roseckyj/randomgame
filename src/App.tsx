@@ -13,8 +13,8 @@ interface IAppState {
 }
 
 class App extends React.Component<IAppProps, IAppState> {
-    apiUrl = 'http://localhost:80/';
-    //apiUrl = 'https://randombot-server.herokuapp.com/';
+    //apiUrl = 'http://localhost:80/';
+    apiUrl = 'https://randombot-server.herokuapp.com/';
 
     state: IAppState = {
         status: 'loading',

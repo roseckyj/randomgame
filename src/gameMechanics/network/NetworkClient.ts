@@ -62,7 +62,7 @@ export class NetworkClient {
                 }
 
                 this.scene.players.updateOrCreate(key, data[key], () =>
-                    new Player(key).attachBabylon(this.getBabylonScene()),
+                    new Player(this.scene, key).attachBabylon(this.getBabylonScene()),
                 );
             });
         });
@@ -71,9 +71,12 @@ export class NetworkClient {
             const id = Chunk.getId(data.x, data.y);
 
             this.scene.chunks.updateOrCreate(id, data, () =>
-                new Chunk(data.x, data.y).attachBabylon(this.getBabylonScene()),
+                new Chunk(this.scene, data.x, data.y).attachBabylon(this.getBabylonScene()),
             );
-            // TODO: throw away unused chunks
+
+            this.scene.chunks
+                .filter((value) => Math.abs(value.position.x - data.x) <= 1 && Math.abs(value.position.y - data.y) <= 1)
+                .forEach((value) => value.updateMesh());
         });
     }
 }

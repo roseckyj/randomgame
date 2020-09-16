@@ -9,10 +9,29 @@ export class GameScene {
         this.players.forEach((value) => value.tick(deltaTime));
         this.chunks.forEach((value) => value.tick(deltaTime));
     }
+
+    getTile(x: number, y: number) {
+        const calcX = Math.floor(x) + 8;
+        const calcY = Math.floor(y) + 8;
+
+        const chunkX = Math.floor(calcX / 16);
+        const chunkY = Math.floor(calcY / 16);
+        const chunk = this.chunks.get(Chunk.getId(chunkX, chunkY));
+
+        if (!chunk || !chunk.ground[calcX - chunkX * 16] || !chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16]) {
+            return -1;
+        }
+
+        return chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16];
+    }
 }
 
 class IndexedList<T extends Player | Chunk> {
     values: { [key: string]: T } = {};
+
+    addMore(values: { [key: string]: T }) {
+        this.values = { ...this.values, ...values };
+    }
 
     add(key: string, value: T) {
         this.values[key] = value;
@@ -20,6 +39,7 @@ class IndexedList<T extends Player | Chunk> {
 
     remove(key: string) {
         if (!this.includes(key)) return;
+        this.values[key].detachBabylon();
         delete this.values[key];
     }
 
@@ -54,11 +74,11 @@ class IndexedList<T extends Player | Chunk> {
     filter(callbackfn: (value: T, key: string, index: number) => boolean) {
         const keys = Object.keys(this.values);
 
-        let result = Object.assign({}, this.values);
+        const result = new IndexedList<T>();
 
         keys.forEach((key, index) => {
-            if (!callbackfn(this.values[key], key, index)) {
-                delete result[key];
+            if (callbackfn(this.values[key], key, index)) {
+                result.add(key, this.values[key]);
             }
         });
 

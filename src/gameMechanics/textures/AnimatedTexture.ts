@@ -14,7 +14,7 @@ export class AnimatedTexture {
 
     private textureScale = 1;
 
-    constructor(textureAtlas: string, scene: Scene, animation: string = 'default') {
+    constructor(textureAtlas: string, private scene: Scene, animation: string = 'default') {
         this.textureAtlas = textureAtlas;
         this.textureScale = 1 / textures[textureAtlas].width;
 
@@ -33,10 +33,8 @@ export class AnimatedTexture {
 
         this.texture = t;
 
-        this.queueAnimation(animation);
+        this.queue(animation);
         this.interval = setInterval(() => this.tick(), TIME_PER_FRAME);
-
-        (window as any).texture = this;
     }
 
     getTexture() {
@@ -47,7 +45,13 @@ export class AnimatedTexture {
         return this.animationQueue[this.animationQueue.length - 1].texture === animation;
     }
 
-    queueAnimation(animation: string, unskipable?: boolean) {
+    queueOnce(animation: string, unskipable?: boolean) {
+        if (!this.isLast(animation)) {
+            this.queue(animation, unskipable);
+        }
+    }
+
+    queue(animation: string, unskipable?: boolean) {
         if (!Object.keys(textures[this.textureAtlas].animations).includes(animation)) {
             console.warn('Animation does not exist');
             this.animationQueue.push({ texture: 'default', skippable: true });
@@ -122,5 +126,9 @@ export class AnimatedTexture {
         const newAnimation = textures[this.textureAtlas].animations[this.animationQueue[0].texture];
         const animationDir = newAnimation.start > newAnimation.end ? -1 : 1;
         this.texture.uOffset = (this.frame * animationDir + newAnimation.start) * this.textureScale;
+    }
+
+    detach() {
+        this.scene.removeTexture(this.texture);
     }
 }

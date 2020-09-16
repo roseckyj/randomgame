@@ -1,5 +1,7 @@
 import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from '@babylonjs/core';
 import { AbstractGameObject } from './AbstractGameObject';
+import { GameScene } from '../Scene';
+import { getImage } from '../textures/textureEngine';
 
 export type tileType = number;
 
@@ -12,8 +14,10 @@ export interface serializedChunk {
 export class Chunk extends AbstractGameObject {
     ground: tileType[][] = [[]];
 
-    constructor(x: number, y: number) {
-        super();
+    private texture: DynamicTexture;
+
+    constructor(gameScene: GameScene, x: number, y: number) {
+        super(gameScene);
         this.position = new Vector2(x, y);
     }
 
@@ -46,60 +50,125 @@ export class Chunk extends AbstractGameObject {
     attachBabylon(scene: Scene) {
         super.attachBabylon(scene);
 
-        this.mesh = MeshBuilder.CreatePlane(
-            'chunk',
-            { width: 1600, height: 1600, sideOrientation: Mesh.FRONTSIDE },
-            this.scene,
-        );
-        this.updateMesh();
+        if (this.babylonScene) {
+            this.mesh = MeshBuilder.CreatePlane(
+                'chunk',
+                { width: 1600, height: 1600, sideOrientation: Mesh.FRONTSIDE },
+                this.babylonScene,
+            );
+
+            const texture = new DynamicTexture(
+                'chunkTexture',
+                { width: 16 * 16, height: 16 * 16 },
+                this.babylonScene,
+                true,
+                Texture.NEAREST_NEAREST,
+            );
+
+            this.texture = texture;
+            const material = new StandardMaterial('mat', this.babylonScene);
+            material.emissiveTexture = texture;
+            this.mesh.material = material;
+
+            this.updateMesh();
+        }
 
         return this;
     }
 
     async updateMesh() {
-        if (!this.mesh || !this.scene) {
+        if (!this.mesh || !this.babylonScene) {
             return;
         }
 
         this.mesh.position = new Vector3(this.position.x * 16 * 100, -this.position.y * 16 * 100, 0);
 
-        const texture = new DynamicTexture(
-            'chunkTexture',
-            { width: 1 * 16, height: 1 * 16 },
-            this.scene,
-            true,
-            Texture.NEAREST_NEAREST,
-        );
-
-        const ctx = texture.getContext();
+        const ctx = this.texture.getContext();
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
                 if (this.ground[x] && this.ground[x][y]) {
                     ctx.fillStyle = Chunk.getTerrainColor(this.ground[x][y]);
 
-                    ctx.fillRect(x, y, 1, 1);
-                    if ((x + y) % 2 === 0) {
-                        ctx.fillStyle = '#00000005';
-                        ctx.fillRect(x, y, 1, 1);
+                    ctx.fillRect(x * 16, y * 16, 16, 16);
+                    // if ((x + y) % 2 === 0) {
+                    //     ctx.fillStyle = '#00000005';
+                    //     ctx.fillRect(x * 16, y * 16, 16, 16);
+                    // }
+
+                    if (this.ground[x][y] === 2) {
+                        // Water, should have transition?
+
+                        this.drawTransition(ctx, x, y, 1, 'grass_water');
                     }
                 }
             }
         }
 
-        texture.update();
+        this.texture.update();
+    }
 
-        const material = new StandardMaterial('mat', this.scene);
-        material.emissiveTexture = texture;
-        this.mesh.material = material;
+    drawTransition(ctx: CanvasRenderingContext2D, x: number, y: number, tileType: number, filePrefix: string) {
+        const posX = this.position.x * 16 + x - 8;
+        const posY = this.position.y * 16 + y - 8;
+
+        let sides = '';
+        if (this.gameScene.getTile(posX, posY - 1) === tileType) sides += 'T';
+        if (this.gameScene.getTile(posX + 1, posY) === tileType) sides += 'R';
+        if (this.gameScene.getTile(posX, posY + 1) === tileType) sides += 'B';
+        if (this.gameScene.getTile(posX - 1, posY) === tileType) sides += 'L';
+
+        if (sides === 'TB') {
+            const top = getImage(filePrefix + '_T');
+            if (top) ctx.drawImage(top, x * 16, y * 16);
+            const bottom = getImage(filePrefix + '_B');
+            if (bottom) ctx.drawImage(bottom, x * 16, y * 16);
+        } else if (sides === 'RL') {
+            const right = getImage(filePrefix + '_R');
+            if (right) ctx.drawImage(right, x * 16, y * 16);
+            const left = getImage(filePrefix + '_L');
+            if (left) ctx.drawImage(left, x * 16, y * 16);
+        } else {
+            if (sides.length > 0) {
+                const img = getImage(filePrefix + '_' + sides);
+                if (img) ctx.drawImage(img, x * 16, y * 16);
+            }
+        }
+
+        const corner = (shiftX: number, shiftY: number, blackList: string[], suffix: string) => {
+            if (
+                this.gameScene.getTile(posX + shiftX, posY + shiftY) === tileType &&
+                !blackList.reduce((prev, letter) => prev || sides.includes(letter), false)
+            ) {
+                const img = getImage(filePrefix + '_corner_' + suffix);
+                if (img) ctx.drawImage(img, x * 16, y * 16);
+            }
+        };
+
+        corner(-1, -1, ['L', 'T'], 'BR');
+        corner(+1, -1, ['R', 'T'], 'BL');
+        corner(-1, +1, ['L', 'B'], 'TR');
+        corner(+1, +1, ['R', 'B'], 'TL');
+    }
+
+    detachBabylon() {
+        if (this.babylonScene && this.mesh && this.texture) {
+            this.babylonScene.removeTexture(this.texture);
+            if (this.mesh.material) {
+                this.babylonScene.removeMaterial(this.mesh.material);
+            }
+        }
+
+        // Mesh detached by super
+        return super.detachBabylon();
     }
 
     static getTerrainColor(number: number): string {
         switch (number) {
             case 1: // Grass
-                return '#CFDA78';
+                return '#67943F';
             case 2: // Water
-                return '#4EDCF0';
+                return '#2EB0E5';
             case 3: // Forrest
                 return '#6AA981';
             case 4: // Sand

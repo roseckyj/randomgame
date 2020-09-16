@@ -57,4 +57,114 @@ export const textures: texturePack = {
             },
         },
     },
+    rock_big: {
+        filename: 'rock_big.png',
+        width: 1,
+        animations: {},
+    },
+    rock_small: {
+        filename: 'rock_small.png',
+        width: 1,
+        animations: {},
+    },
+    bush: {
+        filename: 'bush.png',
+        width: 1,
+        animations: {},
+    },
+    tree_big: {
+        filename: 'tree_big.png',
+        width: 1,
+        animations: {},
+    },
+    tree_small: {
+        filename: 'tree_small.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_L: {
+        filename: 'grass_water_L.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_R: {
+        filename: 'grass_water_R.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_T: {
+        filename: 'grass_water_T.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_B: {
+        filename: 'grass_water_B.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_TL: {
+        filename: 'grass_water_TL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_RB: {
+        filename: 'grass_water_RB.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_TR: {
+        filename: 'grass_water_TR.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_BL: {
+        filename: 'grass_water_BL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_TBL: {
+        filename: 'grass_water_TBL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_TRL: {
+        filename: 'grass_water_TRL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_RBL: {
+        filename: 'grass_water_RBL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_TRB: {
+        filename: 'grass_water_TRB.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_TRBL: {
+        filename: 'grass_water_TRBL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_corner_BL: {
+        filename: 'grass_water_corner_BL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_corner_BR: {
+        filename: 'grass_water_corner_BR.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_corner_TL: {
+        filename: 'grass_water_corner_TL.png',
+        width: 1,
+        animations: {},
+    },
+    grass_water_corner_TR: {
+        filename: 'grass_water_corner_TR.png',
+        width: 1,
+        animations: {},
+    },
 };

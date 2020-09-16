@@ -60,3 +60,11 @@ export function createMaterial(texture: Texture, scene: Scene) {
 
     return material;
 }
+
+export function getImage(texture: string): HTMLImageElement | null {
+    if (!textures[texture]) {
+        console.warn('Image ' + texture + ' not found!');
+        return null;
+    }
+    return atlases[textures[texture].filename];
+}

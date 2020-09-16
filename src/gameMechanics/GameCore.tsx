@@ -1,7 +1,7 @@
 import React from 'react';
 
 import '@babylonjs/core/Physics/physicsEngineComponent';
-import babylonjs, { Vector3, UniversalCamera, Texture } from '@babylonjs/core';
+import babylonjs, { Vector3, UniversalCamera } from '@babylonjs/core';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
@@ -13,7 +13,9 @@ import { NetworkClient } from './network/NetworkClient';
 import { minimap } from './gui/minimap';
 
 const Z_DISTANCE = 1500;
-const RENDER_DISTANCE = 2;
+const RENDER_DISTANCE = 3;
+const REQUEST_DISTANCE = 3;
+const DELETE_DISTANCE = 5;
 
 interface IGameCoreProps {
     apiUrl: string;
@@ -31,6 +33,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     state: IGameCoreState = {};
 
     timer: NodeJS.Timeout;
+
+    zoom: number = 1;
 
     constructor(props: IGameCoreProps) {
         super(props);
@@ -51,6 +55,14 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             }
         });
 
+        document.addEventListener('wheel', (event) => {
+            event.preventDefault();
+
+            this.zoom += event.deltaY * 0.03;
+            if (this.zoom < 0.5) this.zoom = 0.5;
+            if (this.zoom > 3) this.zoom = 3;
+        });
+
         window.addEventListener('resize', (event) => {
             this.resize();
         });
@@ -67,7 +79,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     }
 
     initGame(id: string) {
-        this.me = new Player(id);
+        this.me = new Player(this.gameScene, id);
         this.me.attachBabylon(this.babylonScene!);
         this.me.bindKeys(CONTROLS_WASD);
         this.gameScene.players.add(id, this.me);
@@ -83,20 +95,38 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     tick(deltaTime: number) {
         this.gameScene.players.forEach((player) => player.tick(deltaTime));
 
-        this.gameScene.chunks.forEach((chunk) => chunk.setVisibility(false));
+        this.gameScene.chunks.forEach((chunk) => {
+            if (
+                this.me &&
+                (Math.abs(Math.round(this.me.position.x / 1600) - chunk.position.x) > RENDER_DISTANCE ||
+                    Math.abs(Math.round(this.me.position.y / 1600) - chunk.position.y) > RENDER_DISTANCE)
+            ) {
+                chunk.setVisibility(false);
+                if (
+                    this.me &&
+                    (Math.abs(Math.round(this.me.position.x / 1600) - chunk.position.x) > DELETE_DISTANCE ||
+                        Math.abs(Math.round(this.me.position.y / 1600) - chunk.position.y) > DELETE_DISTANCE)
+                ) {
+                    this.gameScene.chunks.remove(chunk.id);
+                }
+            } else {
+                chunk.setVisibility(true);
+            }
+        });
 
         if (this.me && this.guiTexture) {
-            for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
-                for (let y = -RENDER_DISTANCE; y <= RENDER_DISTANCE; y++) {
+            for (let x = -REQUEST_DISTANCE; x <= REQUEST_DISTANCE; x++) {
+                for (let y = -REQUEST_DISTANCE; y <= REQUEST_DISTANCE; y++) {
                     const chunkX = Math.round(this.me.position.x / 1600) + x;
                     const chunkY = Math.round(this.me.position.y / 1600) + y;
                     const chunkId = Chunk.getId(chunkX, chunkY);
 
-                    if (this.gameScene.chunks.includes(chunkId)) {
-                        this.gameScene.chunks.get(chunkId)!.setVisibility(true);
-                    } else {
+                    if (!this.gameScene.chunks.includes(chunkId)) {
                         this.networkClient.requestChunk(chunkX, chunkY);
-                        this.gameScene.chunks.add(chunkId, new Chunk(chunkX, chunkY).attachBabylon(this.babylonScene!));
+                        this.gameScene.chunks.add(
+                            chunkId,
+                            new Chunk(this.gameScene, chunkX, chunkY).attachBabylon(this.babylonScene!),
+                        );
                     }
                 }
             }
@@ -135,7 +165,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             this.tick(scene.getEngine().getDeltaTime());
 
             if (this.me) {
-                camera.position = new Vector3(this.me.position.x, -this.me.position.y, -Z_DISTANCE);
+                camera.position = new Vector3(this.me.position.x, -this.me.position.y, -Z_DISTANCE * this.zoom);
             }
 
             if (scene) {

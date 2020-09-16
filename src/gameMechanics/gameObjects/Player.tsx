@@ -2,6 +2,7 @@ import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture } from '@bab
 import { createMaterial } from '../textures/textureEngine';
 import { AbstractGameObject } from './AbstractGameObject';
 import { AnimatedTexture } from '../textures/AnimatedTexture';
+import { GameScene } from '../Scene';
 
 export interface serializedPlayer {
     x: number;
@@ -42,9 +43,10 @@ export class Player extends AbstractGameObject {
     private keysPressed: number[] = [];
 
     private texture: AnimatedTexture;
+    private titleTexture: DynamicTexture;
 
-    constructor(public id: string) {
-        super();
+    constructor(gameScene: GameScene, public id: string) {
+        super(gameScene);
     }
 
     serialize(): serializedPlayer {
@@ -168,47 +170,43 @@ export class Player extends AbstractGameObject {
     attachBabylon(scene: Scene) {
         super.attachBabylon(scene);
 
-        if (!this.scene) return this;
+        if (!this.babylonScene) return this;
 
         this.mesh = MeshBuilder.CreatePlane(
             'player',
             { width: 100, height: 200, sideOrientation: Mesh.FRONTSIDE },
-            this.scene,
+            this.babylonScene,
         );
-        this.texture = new AnimatedTexture('player', this.scene, 'default');
-        this.mesh.material = createMaterial(this.texture.getTexture(), this.scene);
+        this.texture = new AnimatedTexture('player', this.babylonScene, 'default');
+        this.mesh.material = createMaterial(this.texture.getTexture(), this.babylonScene);
 
         // Player title
         const title = MeshBuilder.CreatePlane(
             'title',
-            { width: 120, height: 25, sideOrientation: Mesh.FRONTSIDE },
-            this.scene,
+            { width: 200, height: 40, sideOrientation: Mesh.FRONTSIDE },
+            this.babylonScene,
         );
         title.position = new Vector3(0, 110, -3);
         const titleTexture = new DynamicTexture(
             'titleTexture',
-            { width: 120, height: 25 },
-            this.scene,
+            { width: 200, height: 40 },
+            this.babylonScene,
             true,
-            Texture.BILINEAR_SAMPLINGMODE,
+            Texture.LINEAR_LINEAR,
         );
+        this.titleTexture = titleTexture;
         const ctx = titleTexture.getContext();
-        ctx.fillStyle = '#000000AA';
+        ctx.fillStyle = '#343434AA';
         ctx.fillRect(0, 0, titleTexture.getSize().width, titleTexture.getSize().height);
-        ctx.font = '18px Arial';
+        ctx.font = '32px pixel';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(
-            this.id,
-            titleTexture.getSize().width / 2,
-            titleTexture.getSize().height / 2,
-            titleTexture.getSize().width - 20,
-        );
+        ctx.fillText(this.id, titleTexture.getSize().width / 2, titleTexture.getSize().height / 2);
         titleTexture.update();
 
         title.parent = this.mesh;
-        title.material = createMaterial(titleTexture, this.scene);
+        title.material = createMaterial(titleTexture, this.babylonScene);
 
         this.updateMesh();
 
@@ -221,13 +219,27 @@ export class Player extends AbstractGameObject {
 
         const WALKING_THRESHOLD = 1;
         if (Math.abs(this.velocityX) > WALKING_THRESHOLD || Math.abs(this.velocityY) > WALKING_THRESHOLD) {
-            if (!this.texture.isLast('walking')) {
-                this.texture.queueAnimation('walking');
-            }
+            this.texture.queueOnce('walking');
         } else {
-            if (!this.texture.isLast('default')) {
-                this.texture.queueAnimation('default');
+            this.texture.queueOnce('default');
+        }
+    }
+
+    detachBabylon() {
+        this.texture.detach();
+        if (this.babylonScene && this.mesh) {
+            const child = this.mesh.getChildMeshes()[0];
+
+            if (this.mesh.material) {
+                this.babylonScene.removeMaterial(this.mesh.material);
+            }
+            if (this.titleTexture && child && child.material) {
+                this.babylonScene.removeTexture(this.titleTexture);
+                this.babylonScene.removeMaterial(child.material);
             }
         }
+
+        // Mesh detached by super
+        return super.detachBabylon();
     }
 }

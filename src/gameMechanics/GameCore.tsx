@@ -82,7 +82,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.me = new Player(this.gameScene, id);
         this.me.attachBabylon(this.babylonScene!);
         this.me.bindKeys(CONTROLS_WASD);
-        this.gameScene.players.add(id, this.me);
+        this.gameScene.entities.add(id, this.me);
 
         (window as any).player = this.me;
         (window as any).scene = this.gameScene;
@@ -93,7 +93,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     }
 
     tick(deltaTime: number) {
-        this.gameScene.players.forEach((player) => player.tick(deltaTime));
+        this.gameScene.entities.forEach((entity) => entity.tick(deltaTime));
 
         this.gameScene.chunks.forEach((chunk) => {
             if (

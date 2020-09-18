@@ -1,8 +1,8 @@
 import { Vector3, Mesh, Scene, MeshBuilder } from '@babylonjs/core';
-import { createMaterial } from '../textures/textureEngine';
+import { createMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
 import { GameScene } from './Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
-import { SimpleTexture } from '../textures/SimpleTexture';
+import { SimpleTexture } from '../../frontend/gameMechanics/textures/SimpleTexture';
 
 export interface serializedTree {
     size: 1 | 2;

@@ -1,7 +1,7 @@
 import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from '@babylonjs/core';
 import { AbstractGameObject } from './00_AbstractGameObject';
 import { GameScene } from './Scene';
-import { getImage } from '../textures/textureEngine';
+import { getImage } from '../../frontend/gameMechanics/textures/textureEngine';
 
 export type tileType = number;
 

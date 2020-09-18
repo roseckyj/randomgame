@@ -1,9 +1,9 @@
-import { GameScene } from '../../src/GameMechanics/gameObjects/Scene';
-import { messageMapRequest } from '../../src/gameMechanics/network/messageTypes';
 import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
-import { Player, serializedPlayer } from '../../src/GameMechanics/gameObjects/Player';
 import { uuid } from 'uuidv4';
-import { serializedEntity } from '../../src/GameMechanics/gameObjects/01_AbstractGameEntity';
+import { Player, serializedPlayer } from '../../shared/gameObjects/Player';
+import { GameScene } from '../../shared/gameObjects/Scene';
+import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
+import { messageMapRequest } from '../../shared/network/messageTypes';
 
 const DISCONNECT_TIMEOUT = 10000;
 

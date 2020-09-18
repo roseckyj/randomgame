@@ -1,4 +1,4 @@
-import { AbstractGameObject } from '../gameObjects/00_AbstractGameObject';
+import { AbstractGameObject } from '../../../shared/gameObjects/00_AbstractGameObject';
 
 export class IndexedList<T extends AbstractGameObject> {
     values: { [key: string]: T } = {};

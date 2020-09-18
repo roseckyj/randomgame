@@ -5,9 +5,9 @@ import babylonjs, { Vector3, UniversalCamera } from '@babylonjs/core';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { Player } from './gameObjects/Player';
-import { Chunk } from './gameObjects/Chunk';
-import { GameScene } from './gameObjects/Scene';
+import { Player } from '../../shared/gameObjects/Player';
+import { Chunk } from '../../shared/gameObjects/Chunk';
+import { GameScene } from '../../shared/gameObjects/Scene';
 import { CONTROLS_WASD } from '../keyBindings';
 import { NetworkClient } from './network/Client';
 import { minimap } from './gui/minimap';

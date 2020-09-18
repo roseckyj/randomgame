@@ -1,11 +1,11 @@
 import io from 'socket.io-client';
-import { Player, serializedPlayer } from '../gameObjects/Player';
-import { GameScene } from '../gameObjects/Scene';
+import { Player, serializedPlayer } from '../../../shared/gameObjects/Player';
+import { GameScene } from '../../../shared/gameObjects/Scene';
 import babylonjs from '@babylonjs/core';
-import { serializedChunk, Chunk } from '../gameObjects/Chunk';
-import { messageEntities } from './messageTypes';
-import { AbstractGameEntity, serializedEntity } from '../gameObjects/01_AbstractGameEntity';
-import { Tree } from '../gameObjects/Tree';
+import { serializedChunk, Chunk } from '../../../shared/gameObjects/Chunk';
+import { messageEntities } from '../../../shared/network/messageTypes';
+import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';
+import { Tree } from '../../../shared/gameObjects/Tree';
 
 type callback = (data: any) => void;
 

@@ -1,12 +1,12 @@
 import SimplexNoise from 'simplex-noise';
 import { AbstractMapGenerator } from './AbstractMapGenerator';
-import { Chunk } from '../../src/GameMechanics/gameObjects/Chunk';
-import { Tree } from '../../src/GameMechanics/gameObjects/Tree';
 import { uuid } from 'uuidv4';
 import { Vector2 } from '@babylonjs/core';
+import { Chunk } from '../../shared/gameObjects/Chunk';
+import { Tree } from '../../shared/gameObjects/Tree';
 
 export class SimpleMapGenerator extends AbstractMapGenerator {
-    simplex = new SimplexNoise(super.seed.toString());
+    simplex = new SimplexNoise(this.seed.toString());
 
     async generateChunk(chunkX: number, chunkY: number) {
         let chunkData: number[][] = [];

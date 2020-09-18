@@ -1,8 +1,8 @@
-import { GameScene } from '../../src/GameMechanics/gameObjects/Scene';
 import { ConnectedClient } from './ConnectedClient';
 import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
-import { serializedEntity } from '../../src/GameMechanics/gameObjects/01_AbstractGameEntity';
-import { messageEntities } from '../../src/gameMechanics/network/messageTypes';
+import { GameScene } from '../../shared/gameObjects/Scene';
+import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
+import { messageEntities } from '../../shared/network/messageTypes';
 const express = require('express')();
 const http = require('http').Server(express);
 

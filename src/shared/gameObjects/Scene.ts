@@ -1,5 +1,5 @@
 import { Chunk } from './Chunk';
-import { IndexedList } from '../utils/IndexedList';
+import { IndexedList } from '../../frontend/gameMechanics/utils/IndexedList';
 import { AbstractGameEntity } from './01_AbstractGameEntity';
 
 export class GameScene {

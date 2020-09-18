@@ -40,8 +40,7 @@
         "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\"",
         "predeploy": "npm run build",
         "deploy": "gh-pages -d build",
-        "build": "react-scripts build",
-        "eject": "react-scripts eject"
+        "build": "react-scripts build"
     },
     "eslintConfig": {
         "extends": "react-app"

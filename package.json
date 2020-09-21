@@ -33,6 +33,7 @@
         "uuidv4": "^6.2.3"
     },
     "scripts": {
+        "start": "npm run server-start",
         "server-start": "ts-node --transpile-only --project ./src/backend/tsconfig.json ./src/backend.ts",
         "server-develop": "onchange -i -k \"src/{backend,shared}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run server-start",
         "frontend-develop": "cross-env PORT=9976 react-scripts start",

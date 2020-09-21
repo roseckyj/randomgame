@@ -3,11 +3,11 @@ import { createMaterial } from '../../frontend/gameMechanics/textures/textureEng
 import { AnimatedTexture } from '../../frontend/gameMechanics/textures/AnimatedTexture';
 import { GameScene } from './Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
-import { CAMERA_ANGLE } from '../constants';
 
 export interface serializedPlayer {
     velocityX: number;
     velocityY: number;
+    name: string;
 }
 
 export interface keyBindings {
@@ -25,6 +25,8 @@ const SMOOTH_TIME = 50;
 export class Player extends AbstractGameEntity {
     private velocityX: number = 0;
     private velocityY: number = 0;
+
+    public name = '';
 
     // SMOOTHING
     private targetX: number = 0;
@@ -54,22 +56,23 @@ export class Player extends AbstractGameEntity {
         sup.data = {
             velocityX: this.velocityX,
             velocityY: this.velocityY,
+            name: this.name,
         };
         return sup;
     }
 
     deserialize(serialized: serializedEntity<serializedPlayer>, dirty: boolean, smooth?: boolean): void {
+        this.position.x = serialized.x;
+        this.position.y = serialized.y;
+        this.name = serialized.data.name;
+
         if (smooth) {
-            this.targetX = serialized.x;
-            this.targetY = serialized.y;
             this.finalVelocityX = serialized.data.velocityX;
             this.finalVelocityY = serialized.data.velocityY;
             this.targetTime = SMOOTH_TIME;
             this.velocityX = (serialized.x - this.position.x) / SMOOTH_TIME;
             this.velocityY = (serialized.y - this.position.y) / SMOOTH_TIME;
         } else {
-            this.position.x = serialized.x;
-            this.position.y = serialized.y;
             this.velocityX = serialized.data.velocityX;
             this.velocityY = serialized.data.velocityY;
         }
@@ -210,15 +213,6 @@ export class Player extends AbstractGameEntity {
             Texture.LINEAR_LINEAR,
         );
         this.titleTexture = titleTexture;
-        const ctx = titleTexture.getContext();
-        ctx.fillStyle = '#343434AA';
-        ctx.fillRect(0, 0, titleTexture.getSize().width, titleTexture.getSize().height);
-        ctx.font = '32px pixel';
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(this.id, titleTexture.getSize().width / 2, titleTexture.getSize().height / 2);
-        titleTexture.update();
 
         title.parent = this.mesh;
         title.material = createMaterial(titleTexture, this.babylonScene);
@@ -231,6 +225,18 @@ export class Player extends AbstractGameEntity {
     async updateMesh() {
         if (!this.mesh) return;
         super.updateMesh();
+
+        const ctx = this.titleTexture.getContext();
+        ctx.clearRect(0, 0, this.titleTexture.getSize().width, this.titleTexture.getSize().height);
+        ctx.fillStyle = '#343434AA';
+        ctx.fillRect(0, 0, this.titleTexture.getSize().width, this.titleTexture.getSize().height);
+
+        ctx.font = '32px pixel';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(this.name, this.titleTexture.getSize().width / 2, this.titleTexture.getSize().height / 2);
+        this.titleTexture.update();
 
         const WALKING_THRESHOLD = 0.01;
         if (Math.abs(this.velocityX) > WALKING_THRESHOLD || Math.abs(this.velocityY) > WALKING_THRESHOLD) {

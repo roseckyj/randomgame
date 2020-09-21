@@ -5,3 +5,65 @@ body {
     -moz-osx-font-smoothing: grayscale;
     background-color: #33334c;
 }
+
+* {
+    box-sizing: border-box;
+}
+
+input {
+    font-family: 'pixel', 'monospace';
+    padding: 10px 20px;
+    width: 300px;
+    background: none;
+    border: solid 2px rgba(255, 255, 255, 0.5);
+    color: white;
+    outline: none;
+}
+
+button {
+    font-family: 'pixel', 'monospace';
+    padding: 10px 20px;
+    width: 300px;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    color: #33334c;
+    outline: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: white;
+}
+
+@keyframes shake {
+    0% {
+        left: 0px;
+    }
+    25% {
+        left: -10px;
+    }
+    75% {
+        left: 10px;
+    }
+    100% {
+        left: 0px;
+    }
+}
+
+.shake {
+    position: relative;
+    animation-name: shake;
+    animation-duration: 0.2s;
+    animation-iteration-count: 3;
+    animation-timing-function: cubic-bezier();
+}
+
+.center {
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+    width: 100%;
+    color: white;
+    background-color: #33334c;
+}

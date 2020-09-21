@@ -1,16 +1,18 @@
-import { Vector3, Mesh, Scene, MeshBuilder, Vector2 } from 'babylonjs';
-import { createMaterial, getSimpleMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
+import { Mesh, Scene, MeshBuilder, Vector2 } from 'babylonjs';
+import { getSimpleMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
 import { GameScene } from './Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
 import { SimpleTexture } from '../../frontend/gameMechanics/textures/SimpleTexture';
 
+type treeTypes = 1 | 2 | 3 | 4;
+
 export interface serializedTree {
-    size: 1 | 2;
+    size: treeTypes;
 }
 
 export class Tree extends AbstractGameEntity {
     private texture: SimpleTexture;
-    public size: 1 | 2;
+    public size: treeTypes;
 
     constructor(gameScene: GameScene, public id: string) {
         super(gameScene);
@@ -54,7 +56,7 @@ export class Tree extends AbstractGameEntity {
             { width: size.x, height: size.y, sideOrientation: Mesh.FRONTSIDE },
             this.babylonScene,
         );
-        this.mesh.material = getSimpleMaterial(this.size === 1 ? 'tree_small' : 'tree_big', this.babylonScene);
+        this.setMaterial();
 
         this.updateMesh();
         return this;
@@ -62,8 +64,27 @@ export class Tree extends AbstractGameEntity {
 
     async updateMesh() {
         if (!this.mesh || !this.babylonScene) return;
-        this.mesh.material = getSimpleMaterial(this.size === 1 ? 'tree_small' : 'tree_big', this.babylonScene);
+        this.setMaterial();
         super.updateMesh();
+    }
+
+    setMaterial() {
+        if (this.mesh && this.babylonScene) {
+            switch (this.size) {
+                case 1:
+                    this.mesh.material = getSimpleMaterial('tree_small', this.babylonScene);
+                    break;
+                case 2:
+                    this.mesh.material = getSimpleMaterial('tree_big', this.babylonScene);
+                    break;
+                case 3:
+                    this.mesh.material = getSimpleMaterial('tree_short', this.babylonScene);
+                    break;
+                case 4:
+                    this.mesh.material = getSimpleMaterial('tree_tall', this.babylonScene);
+                    break;
+            }
+        }
     }
 
     detachBabylon() {
@@ -72,7 +93,6 @@ export class Tree extends AbstractGameEntity {
     }
 
     getSize() {
-        const treeScale = 1.5;
-        return new Vector2(100 * treeScale, 200 * treeScale);
+        return new Vector2(200, 400);
     }
 }

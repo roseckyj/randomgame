@@ -5,7 +5,7 @@ import { loadTextures } from './gameMechanics/textures/textureEngine';
 interface IAppProps {}
 
 interface IAppState {
-    status: 'loading' | 'menu' | 'paused' | 'ingame';
+    status: 'loading' | 'ingame';
     textures: {
         loaded: number;
         of: number;
@@ -13,8 +13,8 @@ interface IAppState {
 }
 
 class App extends React.Component<IAppProps, IAppState> {
-    //apiUrl = 'http://localhost:80/';
-    apiUrl = 'https://randombot-server.herokuapp.com/';
+    apiUrl = 'http://localhost:80/';
+    //apiUrl = 'https://randombot-server.herokuapp.com/';
 
     state: IAppState = {
         status: 'loading',
@@ -49,17 +49,8 @@ class App extends React.Component<IAppProps, IAppState> {
         return (
             <>
                 {this.state.status === 'loading' && (
-                    <div
-                        style={{
-                            textAlign: 'center',
-                            position: 'absolute',
-                            top: '50%',
-                            transform: 'translate(0, -50%)',
-                            width: '100%',
-                            color: 'white',
-                        }}
-                    >
-                        Textures are loading ({this.state.textures.loaded}/{this.state.textures.of})
+                    <div className="center">
+                        Načítání textur... ({this.state.textures.loaded}/{this.state.textures.of})
                     </div>
                 )}
                 {this.state.status === 'ingame' && <GameCore apiUrl={this.apiUrl} />}

@@ -60,7 +60,16 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                     x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                     y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                 );
-                tree.size = Math.random() > 0.5 ? 1 : 2;
+                if (Math.random() > 0.5) {
+                    tree.size = 4;
+                } else if (Math.random() > 0.5) {
+                    tree.size = 3;
+                } else if (Math.random() > 0.5) {
+                    tree.size = 2;
+                } else {
+                    tree.size = 1;
+                }
+
                 this.scene.entities.add(tree.id, tree);
             }
             return 1;

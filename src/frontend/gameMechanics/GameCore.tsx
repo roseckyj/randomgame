@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { createRef } from 'react';
 
-import babylonjs, { Vector3, UniversalCamera, SpotLight, Mesh, StandardMaterial, MeshBuilder } from 'babylonjs';
+import babylonjs, { Vector3, UniversalCamera, StandardMaterial, MeshBuilder } from 'babylonjs';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { Player } from '../../shared/gameObjects/Player';
+import { Player, serializedPlayer } from '../../shared/gameObjects/Player';
 import { Chunk } from '../../shared/gameObjects/Chunk';
 import { GameScene } from '../../shared/gameObjects/Scene';
 import { CONTROLS_WASD } from '../keyBindings';
@@ -12,6 +12,8 @@ import { NetworkClient } from './network/Client';
 import { minimap } from './gui/minimap';
 import { debugInfo } from './gui/debugInfo';
 import { CAMERA_ANGLE, CAMERA_DISTANCE } from '../../shared/constants';
+import { shadeText } from './utils/shadeText';
+import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
 
 const MAX_RENDER_DISTANCE = 3;
 const REQUEST_DISTANCE = 3;
@@ -21,7 +23,9 @@ interface IGameCoreProps {
     apiUrl: string;
 }
 
-interface IGameCoreState {}
+interface IGameCoreState {
+    loggedIn: boolean;
+}
 
 export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     gameScene: GameScene;
@@ -30,19 +34,38 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     babylonScene: babylonjs.Scene | null;
     guiTexture: AdvancedDynamicTexture | null;
     networkClient: NetworkClient;
-    state: IGameCoreState = {};
+    state: IGameCoreState = {
+        loggedIn: false,
+    };
 
     timer: NodeJS.Timeout;
 
     zoom: number = 1;
     renderDistance: number = MAX_RENDER_DISTANCE;
 
+    debug: boolean = false;
+
+    loginRef = createRef<HTMLInputElement>();
+    passwordRef = createRef<HTMLInputElement>();
+
     constructor(props: IGameCoreProps) {
         super(props);
 
         this.gameScene = new GameScene();
         this.networkClient = new NetworkClient(this.props.apiUrl, this.gameScene, () => this.babylonScene!);
-        this.networkClient.on('authenticated', (data: { id: string }) => this.initGame(data.id));
+        this.networkClient.on('authenticated', (data: serializedEntity<serializedPlayer>) => this.initGame(data));
+        this.networkClient.on('invalidPassword', () => {
+            if (this.loginRef.current && this.passwordRef.current) {
+                this.loginRef.current.classList.add('shake');
+                this.passwordRef.current.classList.add('shake');
+                setTimeout(() => {
+                    if (this.loginRef.current && this.passwordRef.current) {
+                        this.loginRef.current.classList.remove('shake');
+                        this.passwordRef.current.classList.remove('shake');
+                    }
+                }, 600);
+            }
+        });
 
         document.addEventListener('keydown', (event) => {
             if (this.me) {
@@ -79,14 +102,21 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.networkClient.close();
     }
 
-    initGame(id: string) {
-        this.me = new Player(this.gameScene, id);
+    initGame(player: serializedEntity<serializedPlayer>) {
+        this.setState({
+            loggedIn: true,
+        });
+        this.me = new Player(this.gameScene, player.id);
         this.me.attachBabylon(this.babylonScene!);
         this.me.bindKeys(CONTROLS_WASD);
-        this.gameScene.entities.add(id, this.me);
+        this.me.deserialize(player, false, false);
+        this.gameScene.entities.add(player.id, this.me);
 
         (window as any).player = this.me;
         (window as any).scene = this.gameScene;
+        (window as any).enableDebug = () => {
+            this.debug = true;
+        };
 
         this.timer = setInterval(() => {
             if (this.me) this.networkClient.sendPlayerUpdate(this.me);
@@ -107,7 +137,9 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 gui.clearRect(0, 0, width, height);
 
                 minimap(this.guiTexture, this.gameScene, this.me);
-                debugInfo(this.guiTexture, this.gameScene, deltaTime);
+                if (this.debug) {
+                    debugInfo(this.guiTexture, this.gameScene, deltaTime);
+                }
 
                 this.guiTexture.update();
             } else {
@@ -122,7 +154,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 gui.textBaseline = 'middle';
                 gui.textAlign = 'center';
 
-                gui.fillText('Connecting to server...', width / 2, height / 2);
+                shadeText(gui, 'Připojování k serveru...', width / 2, height / 2);
 
                 this.guiTexture.update();
             }
@@ -244,6 +276,29 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     render() {
         return (
             <>
+                {!this.state.loggedIn && (
+                    <div className="center">
+                        <p>Přihlaste se, nebo si vytvořte účet:</p>
+                        <p>
+                            <input type="text" placeholder="Jméno" ref={this.loginRef} />
+                        </p>
+                        <p>
+                            <input type="password" placeholder="Heslo" ref={this.passwordRef} />
+                        </p>
+                        <p>
+                            <button
+                                onClick={() =>
+                                    this.networkClient.auth(
+                                        this.loginRef!.current!.value,
+                                        this.passwordRef!.current!.value,
+                                    )
+                                }
+                            >
+                                Přihlásit se!
+                            </button>
+                        </p>
+                    </div>
+                )}
                 <Engine antialias={true} canvasId="game">
                     <Scene onSceneMount={(event: SceneEventArgs) => this.onSceneMount(event)}>
                         <></>

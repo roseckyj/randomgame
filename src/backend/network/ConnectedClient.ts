@@ -3,25 +3,71 @@ import { uuid } from 'uuidv4';
 import { Player, serializedPlayer } from '../../shared/gameObjects/Player';
 import { GameScene } from '../../shared/gameObjects/Scene';
 import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
-import { messageEntities, messageMapRequest } from '../../shared/network/messageTypes';
+import { messageEntities, messageError, messageLogin, messageMapRequest } from '../../shared/network/messageTypes';
 
 const DISCONNECT_TIMEOUT = 10000;
+
+let users: { [key: string]: { passwordHash: string; player: Player } } = {};
 
 export class ConnectedClient {
     alive: boolean;
     aliveTimeout: NodeJS.Timeout;
 
-    player: Player;
+    player: Player | null = null;
 
     constructor(private socket: SocketIO.Socket, private scene: GameScene, private mapGenerator: AbstractMapGenerator) {
         this.setListeners();
         this.alive = true;
         this.aliveTimeout = setTimeout(() => this.die(), DISCONNECT_TIMEOUT);
 
-        this.player = new Player(this.scene, uuid());
-        this.scene.entities.add(this.player.id, this.player);
+        this.socket.on('client_ping', (data: any) => {
+            this.socket.emit('client_pong', data);
+        });
 
-        this.socket.emit('auth', this.player.id);
+        this.socket.on('login', (data: messageLogin) => {
+            if (data.name.length < 3) {
+                const payload: messageError = {
+                    error: 'shortName',
+                    description: 'Name is too short',
+                };
+                this.socket.emit('err', payload);
+            }
+
+            const account = users[data.name];
+
+            if (account) {
+                if (account.passwordHash === data.passwordHash) {
+                    this.player = account.player;
+                    console.log('Logged in user ' + data.name);
+                    this.authenticated();
+                } else {
+                    const payload: messageError = {
+                        error: 'credentials',
+                        description: 'Invalid password',
+                    };
+                    this.socket.emit('err', payload);
+                }
+            } else {
+                console.log('Registered new user ' + data.name);
+                this.player = new Player(this.scene, uuid());
+                this.player.name = data.name;
+                this.scene.entities.add(this.player.id, this.player);
+
+                users[data.name] = {
+                    passwordHash: data.passwordHash,
+                    player: this.player,
+                };
+                this.authenticated();
+            }
+        });
+    }
+
+    private authenticated() {
+        if (!this.player) {
+            return;
+        }
+
+        this.socket.emit('auth', this.player.serialize());
 
         const entities = this.scene.entities.filter((entity) => !entity.server_dead);
         const message: messageEntities = {
@@ -29,6 +75,8 @@ export class ConnectedClient {
             removed: [],
         };
         this.socket.emit('entities', message);
+
+        this.setListeners();
     }
 
     private setListeners() {
@@ -52,7 +100,9 @@ export class ConnectedClient {
     }
 
     private die() {
+        if (this.player) {
+            this.player.server_dead = true;
+        }
         this.alive = false;
-        this.player.server_dead = true;
     }
 }

@@ -1,5 +1,6 @@
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { GameScene } from '../../../shared/gameObjects/Scene';
+import { shadeText } from '../utils/shadeText';
 
 export function debugInfo(guiTexture: AdvancedDynamicTexture, gameScene: GameScene, deltaTime: number) {
     const gui = guiTexture.getContext();
@@ -21,13 +22,12 @@ export function debugInfo(guiTexture: AdvancedDynamicTexture, gameScene: GameSce
             ' loaded)',
     };
 
-    gui.fillStyle = '#FFFFFF';
-    gui.font = '15px pixel';
+    gui.font = '16px pixel';
     gui.textBaseline = 'top';
     gui.textAlign = 'left';
 
     Object.keys(values).forEach((key) => {
-        gui.fillText(key + ': ' + values[key], x, y);
+        shadeText(gui, key + ': ' + values[key], x, y);
         y += 20;
     });
 

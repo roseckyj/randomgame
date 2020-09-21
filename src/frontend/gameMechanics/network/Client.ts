@@ -3,10 +3,11 @@ import { Player, serializedPlayer } from '../../../shared/gameObjects/Player';
 import { GameScene } from '../../../shared/gameObjects/Scene';
 import babylonjs from 'babylonjs';
 import { serializedChunk, Chunk } from '../../../shared/gameObjects/Chunk';
-import { messageEntities } from '../../../shared/network/messageTypes';
+import { messageEntities, messageError, messageLogin } from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';
 import { Tree } from '../../../shared/gameObjects/Tree';
 import { Stone } from '../../../shared/gameObjects/Stone';
+import md5 from 'md5';
 
 type callback = (data: any) => void;
 
@@ -17,11 +18,13 @@ export class NetworkClient {
     private callbacks: { [key: string]: callback } = {
         authenticated: () => {},
         updated: () => {},
+        invalidPassword: () => {},
+        disconnect: () => {},
     };
 
     constructor(private apiUrl: string, private scene: GameScene, private getBabylonScene: () => babylonjs.Scene) {}
 
-    public on(event: 'authenticated' | 'updated', callback: callback) {
+    public on(event: 'authenticated' | 'updated' | 'invalidPassword' | 'disconnect', callback: callback) {
         this.callbacks[event] = callback;
     }
 
@@ -34,10 +37,10 @@ export class NetworkClient {
         this.socket = io(this.apiUrl);
         this.setListeners();
 
-        this.socket.on('auth', (data: string) => {
-            this.userId = data;
-            this.callbacks['authenticated']({ id: data });
-            console.log('Joined game with player ID:', data);
+        this.socket.on('auth', (data: serializedEntity<serializedPlayer>) => {
+            this.userId = data.id;
+            this.callbacks['authenticated'](data);
+            console.log('Joined game with player ', data.data.name, ' (' + data.id + ')');
         });
     }
 
@@ -50,17 +53,26 @@ export class NetworkClient {
         this.socket.emit('mapRequest', { x, y });
     }
 
+    public auth(name: string, password: string) {
+        const payload: messageLogin = {
+            name,
+            passwordHash: md5(password),
+        };
+        this.socket.emit('login', payload);
+    }
+
     private setListeners() {
-        this.socket.on('entities', (data: messageEntities) => {
+        this.socket.on('entities', async (data: messageEntities) => {
             data.removed.forEach((entity) => entity.id !== this.userId && this.scene.entities.remove(entity.id));
             data.updated.forEach(
                 (entity) =>
                     entity.id !== this.userId &&
                     this.scene.entities.updateOrCreate(entity.id, entity, false, () => this.createEntity(entity)!),
             );
+            this.callbacks.updated({});
         });
 
-        this.socket.on('mapChunk', (data: serializedChunk) => {
+        this.socket.on('mapChunk', async (data: serializedChunk) => {
             const id = Chunk.getId(data.x, data.y);
 
             this.scene.chunks.updateOrCreate(id, data, false, () =>
@@ -70,6 +82,13 @@ export class NetworkClient {
             this.scene.chunks
                 .filter((value) => Math.abs(value.position.x - data.x) <= 1 && Math.abs(value.position.y - data.y) <= 1)
                 .forEach((value) => value.updateMesh());
+        });
+
+        this.socket.on('err', async (data: messageError) => {
+            switch (data.error) {
+                case 'credentials':
+                    this.callbacks.invalidPassword(data);
+            }
         });
     }
 

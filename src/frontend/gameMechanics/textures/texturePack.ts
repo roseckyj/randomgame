@@ -72,13 +72,23 @@ export const textures: texturePack = {
         width: 1,
         animations: {},
     },
+    tree_small: {
+        filename: 'tree_small.png',
+        width: 1,
+        animations: {},
+    },
     tree_big: {
         filename: 'tree_big.png',
         width: 1,
         animations: {},
     },
-    tree_small: {
-        filename: 'tree_small.png',
+    tree_short: {
+        filename: 'tree_short.png',
+        width: 1,
+        animations: {},
+    },
+    tree_tall: {
+        filename: 'tree_tall.png',
         width: 1,
         animations: {},
     },

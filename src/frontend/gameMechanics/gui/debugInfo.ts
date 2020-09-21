@@ -21,7 +21,7 @@ export function debugInfo(guiTexture: AdvancedDynamicTexture, gameScene: GameSce
             ' loaded)',
     };
 
-    gui.fillStyle = '#000000';
+    gui.fillStyle = '#FFFFFF';
     gui.font = '15px pixel';
     gui.textBaseline = 'top';
     gui.textAlign = 'left';

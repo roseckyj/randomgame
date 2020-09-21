@@ -106,7 +106,7 @@ export class Chunk extends AbstractGameObject {
                     if (this.ground[x][y] === 2) {
                         // Water, should have transition
 
-                        this.drawTransition(ctx, x, y, 1, 'grass_water');
+                        this.drawTransition(ctx, x, y, [1, 3], 'grass_water');
                     }
 
                     /*
@@ -130,15 +130,15 @@ export class Chunk extends AbstractGameObject {
         this.texture.update();
     }
 
-    drawTransition(ctx: CanvasRenderingContext2D, x: number, y: number, tileType: number, filePrefix: string) {
+    drawTransition(ctx: CanvasRenderingContext2D, x: number, y: number, tileType: number[], filePrefix: string) {
         const posX = this.position.x * 16 + x - 8;
         const posY = this.position.y * 16 + y - 8;
 
         let sides = '';
-        if (this.gameScene.getTile(posX, posY - 1) === tileType) sides += 'T';
-        if (this.gameScene.getTile(posX + 1, posY) === tileType) sides += 'R';
-        if (this.gameScene.getTile(posX, posY + 1) === tileType) sides += 'B';
-        if (this.gameScene.getTile(posX - 1, posY) === tileType) sides += 'L';
+        if (tileType.includes(this.gameScene.getTile(posX, posY - 1))) sides += 'T';
+        if (tileType.includes(this.gameScene.getTile(posX + 1, posY))) sides += 'R';
+        if (tileType.includes(this.gameScene.getTile(posX, posY + 1))) sides += 'B';
+        if (tileType.includes(this.gameScene.getTile(posX - 1, posY))) sides += 'L';
 
         if (sides === 'TB') {
             const top = getImage(filePrefix + '_T');
@@ -159,7 +159,7 @@ export class Chunk extends AbstractGameObject {
 
         const corner = (shiftX: number, shiftY: number, blackList: string[], suffix: string) => {
             if (
-                this.gameScene.getTile(posX + shiftX, posY + shiftY) === tileType &&
+                tileType.includes(this.gameScene.getTile(posX + shiftX, posY + shiftY)) &&
                 !blackList.reduce((prev, letter) => prev || sides.includes(letter), false)
             ) {
                 const img = getImage(filePrefix + '_corner_' + suffix);
@@ -185,14 +185,12 @@ export class Chunk extends AbstractGameObject {
         return super.detachBabylon();
     }
 
-    static getTerrainColor(number: number, minimap?: boolean): string {
+    static getTerrainColor(number: number): string {
         switch (number) {
             case 1: // Grass
                 return '#67943F';
             case 2: // Water
                 return '#2EB0E5';
-            case 3: // Forrest
-                return minimap ? '#6AA981' : '#67943F';
             case 4: // Sand
                 return '#FDDC86';
         }

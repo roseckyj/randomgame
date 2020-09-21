@@ -1,11 +1,10 @@
-import { Chunk } from '../../../shared/gameObjects/Chunk';
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { GameScene } from '../../../shared/gameObjects/Scene';
 import { Player } from '../../../shared/gameObjects/Player';
 
 const MINIMAP_DISTANCE = 32;
 const MINIMAP_SCALE = 2;
-const BORDER_WIDTH = 3;
+const BORDER_WIDTH = MINIMAP_SCALE + 1;
 
 export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene, me: Player) {
     const gui = guiTexture.getContext();
@@ -15,6 +14,9 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
     const x0 = width - 30 - MINIMAP_SCALE * MINIMAP_DISTANCE;
     const y0 = 20 + MINIMAP_SCALE * MINIMAP_DISTANCE;
 
+    const shiftX = Math.floor((Math.floor(me.position.x) - me.position.x) * MINIMAP_SCALE);
+    const shiftY = Math.floor((Math.floor(me.position.y) - me.position.y) * MINIMAP_SCALE);
+
     gui.fillStyle = '#000000';
     gui.fillRect(
         x0 - MINIMAP_SCALE * MINIMAP_DISTANCE - BORDER_WIDTH,
@@ -23,12 +25,42 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
         MINIMAP_SCALE * MINIMAP_DISTANCE * 2 + BORDER_WIDTH * 2 + MINIMAP_SCALE,
     );
 
-    for (let x = -MINIMAP_DISTANCE; x <= MINIMAP_DISTANCE; x++) {
-        for (let y = -MINIMAP_DISTANCE; y <= MINIMAP_DISTANCE; y++) {
-            gui.fillStyle = Chunk.getTerrainColor(gameScene.getTile(me.position.x + x, me.position.y + y), true);
-            gui.fillRect(x0 + x * MINIMAP_SCALE, y0 + y * MINIMAP_SCALE, MINIMAP_SCALE, MINIMAP_SCALE);
+    for (let x = -MINIMAP_DISTANCE; x <= MINIMAP_DISTANCE + 1; x++) {
+        for (let y = -MINIMAP_DISTANCE; y <= MINIMAP_DISTANCE + 1; y++) {
+            gui.fillStyle = getTerrainColor(gameScene.getTile(me.position.x + x, me.position.y + y));
+            gui.fillRect(
+                x0 + x * MINIMAP_SCALE + shiftX,
+                y0 + y * MINIMAP_SCALE + shiftY,
+                MINIMAP_SCALE,
+                MINIMAP_SCALE,
+            );
         }
     }
+
+    gameScene.entities
+        .filter(
+            (entity) =>
+                Math.abs(entity.position.x - me.position.x) <= MINIMAP_DISTANCE + 1.5 &&
+                Math.abs(entity.position.y - me.position.y) <= MINIMAP_DISTANCE + 1.5,
+        )
+        .forEach((entity) => {
+            gui.fillStyle = getEntityColor(entity.serialize().type);
+            gui.fillRect(
+                Math.floor(x0 + (entity.position.x - me.position.x) * MINIMAP_SCALE),
+                Math.floor(y0 + (entity.position.y - me.position.y) * MINIMAP_SCALE),
+                MINIMAP_SCALE,
+                MINIMAP_SCALE,
+            );
+        });
+
+    gui.lineWidth = BORDER_WIDTH;
+    gui.strokeStyle = '#000000';
+    gui.strokeRect(
+        x0 - MINIMAP_SCALE * MINIMAP_DISTANCE - BORDER_WIDTH + 2,
+        y0 - MINIMAP_SCALE * MINIMAP_DISTANCE - BORDER_WIDTH + 2,
+        MINIMAP_SCALE * MINIMAP_DISTANCE * 2 + BORDER_WIDTH * 2 - 4 + MINIMAP_SCALE,
+        MINIMAP_SCALE * MINIMAP_DISTANCE * 2 + BORDER_WIDTH * 2 - 4 + MINIMAP_SCALE,
+    );
 
     gui.fillStyle = '#000000';
     gui.font = '15px pixel';
@@ -48,9 +80,29 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
         y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
     );
 
-    gui.fillStyle = '#00000020';
-    gui.fillRect(x0 - MINIMAP_SCALE * 3, y0, MINIMAP_SCALE * 7, MINIMAP_SCALE);
-    gui.fillRect(x0, y0 - MINIMAP_SCALE * 3, MINIMAP_SCALE, MINIMAP_SCALE * 7);
-
     guiTexture.update();
+}
+
+function getTerrainColor(number: number): string {
+    switch (number) {
+        case 1: // Grass
+            return '#67943F';
+        case 2: // Water
+            return '#2EB0E5';
+        case 4: // Sand
+            return '#FDDC86';
+    }
+    return '#DDDDDD';
+}
+
+function getEntityColor(type: string): string {
+    switch (type) {
+        case 'tree':
+            return '#2A4323';
+        case 'player':
+            return '#000dff';
+        case 'stone':
+            return '#dddddd';
+    }
+    return '#DDDDDD';
 }

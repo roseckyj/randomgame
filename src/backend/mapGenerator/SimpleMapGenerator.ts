@@ -52,6 +52,20 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
             return 2; // Water
         }
 
+        if (forrest > 0) {
+            // Forrest
+            if ((x + y) % 2 === 0 && Math.random() > 1 - forrest) {
+                const tree = new Tree(this.scene, uuid());
+                tree.position = new Vector2(
+                    x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+                    y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+                );
+                tree.size = Math.random() > 0.5 ? 1 : 2;
+                this.scene.entities.add(tree.id, tree);
+            }
+            return 1;
+        }
+
         if (Math.random() > 0.995) {
             // Stone
             const stone = new Stone(this.scene, uuid());
@@ -61,22 +75,9 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
             );
             stone.size = Math.random() > 0.7 ? 1 : 2;
             this.scene.entities.add(stone.id, stone);
-        }
-
-        if (forrest > 0) {
-            // Forrest
-            if (Math.random() > 2 - forrest * 2) {
-                const tree = new Tree(this.scene, uuid());
-                tree.position = new Vector2(
-                    x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
-                    y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
-                );
-                tree.size = Math.random() > 0.5 ? 1 : 2;
-                this.scene.entities.add(tree.id, tree);
-                return 3;
-            }
             return 1;
         }
+
         return 1; // Grass
     }
 }

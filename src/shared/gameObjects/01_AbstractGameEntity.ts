@@ -46,7 +46,7 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
             this.mesh.rotation.x = -CAMERA_ANGLE;
 
             this.mesh.position.x = this.position.x * 100;
-            this.mesh.position.y = -this.position.y * 100 - this.getSize().y;
+            this.mesh.position.y = -this.position.y * 100 + (this.getSize().y * Math.sin(CAMERA_ANGLE)) / 2;
         }
     }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import babylonjs, { Vector3, UniversalCamera, SpotLight } from 'babylonjs';
+import babylonjs, { Vector3, UniversalCamera, SpotLight, Mesh, StandardMaterial, MeshBuilder } from 'babylonjs';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
@@ -13,7 +13,7 @@ import { minimap } from './gui/minimap';
 import { debugInfo } from './gui/debugInfo';
 import { CAMERA_ANGLE, CAMERA_DISTANCE } from '../../shared/constants';
 
-const RENDER_DISTANCE = 3;
+const MAX_RENDER_DISTANCE = 3;
 const REQUEST_DISTANCE = 3;
 const DELETE_DISTANCE = 5;
 
@@ -35,6 +35,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     timer: NodeJS.Timeout;
 
     zoom: number = 1;
+    renderDistance: number = MAX_RENDER_DISTANCE;
 
     constructor(props: IGameCoreProps) {
         super(props);
@@ -58,7 +59,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         document.addEventListener('wheel', (event) => {
             event.preventDefault();
 
-            this.zoom += event.deltaY * 0.03;
+            this.zoom += (event.deltaY / Math.abs(event.deltaY)) * 0.12;
             if (this.zoom < 0.5) this.zoom = 0.5;
             if (this.zoom > 3) this.zoom = 3;
         });
@@ -113,7 +114,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 const gui = this.guiTexture.getContext();
                 const width = this.guiTexture.getSize().width;
                 const height = this.guiTexture.getSize().height;
-                gui.clearRect(0, 0, width, height);
+                gui.fillStyle = '#33334C';
+                gui.fillRect(0, 0, width, height);
 
                 gui.fillStyle = '#FFFFFF';
                 gui.font = '20px pixel';
@@ -144,18 +146,43 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         camera.rotation = new Vector3(-CAMERA_ANGLE, 0, 0);
         //camera.attachControl(event.canvas, true);
 
+        const skybox = MeshBuilder.CreateCylinder(
+            'skyBox',
+            {
+                height: CAMERA_DISTANCE * 100,
+                diameterTop: MAX_RENDER_DISTANCE * 16 * 100 * 3,
+                diameterBottom: MAX_RENDER_DISTANCE * 16 * 100 * 1,
+                tessellation: 24,
+            },
+            this.babylonScene,
+        );
+        const skyboxMaterial = new StandardMaterial('skyBox', this.babylonScene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.disableLighting = true;
+        skybox.material = skyboxMaterial;
+        skybox.rotation = new Vector3(Math.PI / 2, 0, 0);
+
         this.guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('GUI', true, scene);
 
         scene.getEngine().runRenderLoop(() => {
             this.tick(scene.getEngine().getDeltaTime());
 
-            if (this.me) {
-                camera.position = new Vector3(
-                    this.me.position.x * 100,
-                    -this.me.position.y * 100 - CAMERA_DISTANCE * this.zoom * Math.tan(CAMERA_ANGLE),
-                    -CAMERA_DISTANCE * this.zoom,
-                );
-            }
+            (async () => {
+                if (this.me) {
+                    camera.position = new Vector3(
+                        this.me.position.x * 100,
+                        -this.me.position.y * 100 - CAMERA_DISTANCE * this.zoom * Math.tan(CAMERA_ANGLE),
+                        -CAMERA_DISTANCE * this.zoom,
+                    );
+
+                    skybox.position.x = this.me.position.x * 100;
+                    skybox.position.y = -this.me.position.y * 100;
+                }
+
+                this.renderDistance = Math.min(Math.ceil(this.zoom + 0.5), MAX_RENDER_DISTANCE);
+            })();
 
             if (scene) {
                 scene.render();
@@ -168,7 +195,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             this.gameScene.chunks.forEach((chunk) => {
                 const distX = Math.abs(Math.round(this.me!.position.x / 16) - chunk.position.x);
                 const distY = Math.abs(Math.round(this.me!.position.y / 16) - chunk.position.y);
-                if (distX > RENDER_DISTANCE || distY > RENDER_DISTANCE) {
+                if (distX > this.renderDistance || distY > this.renderDistance) {
                     chunk.setVisibility(false);
                     if (distX > DELETE_DISTANCE || distY > DELETE_DISTANCE) {
                         this.gameScene.chunks.remove(chunk.id);
@@ -182,7 +209,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 const distX = Math.abs(Math.round(this.me!.position.x) - entity.position.x) / 16;
                 const distY = Math.abs(Math.round(this.me!.position.y) - entity.position.y) / 16;
 
-                if (distX > RENDER_DISTANCE || distY > RENDER_DISTANCE) {
+                if (distX > this.renderDistance || distY > this.renderDistance) {
                     entity.setVisibility(false);
                     if (distX > DELETE_DISTANCE || distY > DELETE_DISTANCE) {
                         this.gameScene.entities.remove(entity.id);

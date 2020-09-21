@@ -9,11 +9,12 @@ export class GameCore {
     networkServer: NetworkServer;
     timer: NodeJS.Timeout;
 
-    constructor(port: number) {
+    constructor(port: number, seed?: string) {
         this.gameScene = new GameScene();
-        this.mapGenerator = new SimpleMapGenerator(this.gameScene);
+        this.mapGenerator = new SimpleMapGenerator(this.gameScene, seed ? parseInt(seed) : undefined);
         this.networkServer = new NetworkServer(port, this.gameScene, this.mapGenerator);
         this.networkServer.open();
+        console.log('Map seed: ', this.mapGenerator.seed);
 
         this.timer = setInterval(() => {
             this.networkServer.sendUpdates();

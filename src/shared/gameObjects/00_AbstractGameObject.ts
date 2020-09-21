@@ -1,5 +1,5 @@
-import { Mesh, Vector2, Scene } from '@babylonjs/core';
-import { GameScene } from '../Scene';
+import { Mesh, Vector2, Scene } from 'babylonjs';
+import { GameScene } from './Scene';
 
 export abstract class AbstractGameObject {
     protected babylonScene: Scene | null = null;
@@ -25,7 +25,7 @@ export abstract class AbstractGameObject {
 
     abstract serialize(): any;
 
-    abstract deserialize(serialized: any): void;
+    abstract deserialize(serialized: any, dirty: boolean, smooth?: boolean): void;
 
     tick(deltaTime: number): void {}
 
@@ -33,6 +33,10 @@ export abstract class AbstractGameObject {
 
     setVisibility(visible: boolean) {
         if (this.mesh) this.mesh.setEnabled(visible);
+    }
+
+    getVisibility() {
+        return !!this.mesh && this.mesh.isEnabled();
     }
 
     abstract get id(): string;

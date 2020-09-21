@@ -1,18 +1,18 @@
 import React from 'react';
 
-import '@babylonjs/core/Physics/physicsEngineComponent';
-import babylonjs, { Vector3, UniversalCamera } from '@babylonjs/core';
+import babylonjs, { Vector3, UniversalCamera, SpotLight } from 'babylonjs';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { Player } from './gameObjects/Player';
-import { Chunk } from './gameObjects/Chunk';
-import { GameScene } from './Scene';
+import { Player } from '../../shared/gameObjects/Player';
+import { Chunk } from '../../shared/gameObjects/Chunk';
+import { GameScene } from '../../shared/gameObjects/Scene';
 import { CONTROLS_WASD } from '../keyBindings';
-import { NetworkClient } from './network/NetworkClient';
+import { NetworkClient } from './network/Client';
 import { minimap } from './gui/minimap';
+import { debugInfo } from './gui/debugInfo';
+import { CAMERA_ANGLE, CAMERA_DISTANCE } from '../../shared/constants';
 
-const Z_DISTANCE = 1500;
 const RENDER_DISTANCE = 3;
 const REQUEST_DISTANCE = 3;
 const DELETE_DISTANCE = 5;
@@ -82,7 +82,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.me = new Player(this.gameScene, id);
         this.me.attachBabylon(this.babylonScene!);
         this.me.bindKeys(CONTROLS_WASD);
-        this.gameScene.players.add(id, this.me);
+        this.gameScene.entities.add(id, this.me);
 
         (window as any).player = this.me;
         (window as any).scene = this.gameScene;
@@ -93,50 +93,20 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     }
 
     tick(deltaTime: number) {
-        this.gameScene.players.forEach((player) => player.tick(deltaTime));
+        this.gameScene.entities.forEach((entity) => entity.tick(deltaTime));
 
-        this.gameScene.chunks.forEach((chunk) => {
-            if (
-                this.me &&
-                (Math.abs(Math.round(this.me.position.x / 1600) - chunk.position.x) > RENDER_DISTANCE ||
-                    Math.abs(Math.round(this.me.position.y / 1600) - chunk.position.y) > RENDER_DISTANCE)
-            ) {
-                chunk.setVisibility(false);
-                if (
-                    this.me &&
-                    (Math.abs(Math.round(this.me.position.x / 1600) - chunk.position.x) > DELETE_DISTANCE ||
-                        Math.abs(Math.round(this.me.position.y / 1600) - chunk.position.y) > DELETE_DISTANCE)
-                ) {
-                    this.gameScene.chunks.remove(chunk.id);
-                }
-            } else {
-                chunk.setVisibility(true);
-            }
-        });
+        this.unloadUnusedComponents();
+        this.requestChunks();
+
         if (this.guiTexture) {
             if (this.me) {
-                for (let x = -REQUEST_DISTANCE; x <= REQUEST_DISTANCE; x++) {
-                    for (let y = -REQUEST_DISTANCE; y <= REQUEST_DISTANCE; y++) {
-                        const chunkX = Math.round(this.me.position.x / 1600) + x;
-                        const chunkY = Math.round(this.me.position.y / 1600) + y;
-                        const chunkId = Chunk.getId(chunkX, chunkY);
-
-                        if (!this.gameScene.chunks.includes(chunkId)) {
-                            this.networkClient.requestChunk(chunkX, chunkY);
-                            this.gameScene.chunks.add(
-                                chunkId,
-                                new Chunk(this.gameScene, chunkX, chunkY).attachBabylon(this.babylonScene!),
-                            );
-                        }
-                    }
-                }
-
                 const gui = this.guiTexture.getContext();
                 const width = this.guiTexture.getSize().width;
                 const height = this.guiTexture.getSize().height;
                 gui.clearRect(0, 0, width, height);
 
                 minimap(this.guiTexture, this.gameScene, this.me);
+                debugInfo(this.guiTexture, this.gameScene, deltaTime);
 
                 this.guiTexture.update();
             } else {
@@ -150,11 +120,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                 gui.textBaseline = 'middle';
                 gui.textAlign = 'center';
 
-                gui.fillText(
-                    'Connecting to server...',
-                    width / 2,
-                    height / 2,
-                );
+                gui.fillText('Connecting to server...', width / 2, height / 2);
 
                 this.guiTexture.update();
             }
@@ -172,10 +138,10 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
     onSceneMount(event: SceneEventArgs) {
         const { scene } = event;
 
-        this.babylonScene = scene;
+        this.babylonScene = (scene as any) as babylonjs.Scene;
 
-        const camera = new UniversalCamera('Camera', new Vector3(0, 0, Z_DISTANCE), scene);
-        camera.rotation = new Vector3(0, 0, 0);
+        const camera = new UniversalCamera('Camera', new Vector3(0, 0, CAMERA_DISTANCE), this.babylonScene);
+        camera.rotation = new Vector3(-CAMERA_ANGLE, 0, 0);
         //camera.attachControl(event.canvas, true);
 
         this.guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('GUI', true, scene);
@@ -184,13 +150,68 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             this.tick(scene.getEngine().getDeltaTime());
 
             if (this.me) {
-                camera.position = new Vector3(this.me.position.x, -this.me.position.y, -Z_DISTANCE * this.zoom);
+                camera.position = new Vector3(
+                    this.me.position.x * 100,
+                    -this.me.position.y * 100 - CAMERA_DISTANCE * this.zoom * Math.tan(CAMERA_ANGLE),
+                    -CAMERA_DISTANCE * this.zoom,
+                );
             }
 
             if (scene) {
                 scene.render();
             }
         });
+    }
+
+    unloadUnusedComponents() {
+        if (this.me) {
+            this.gameScene.chunks.forEach((chunk) => {
+                const distX = Math.abs(Math.round(this.me!.position.x / 16) - chunk.position.x);
+                const distY = Math.abs(Math.round(this.me!.position.y / 16) - chunk.position.y);
+                if (distX > RENDER_DISTANCE || distY > RENDER_DISTANCE) {
+                    chunk.setVisibility(false);
+                    if (distX > DELETE_DISTANCE || distY > DELETE_DISTANCE) {
+                        this.gameScene.chunks.remove(chunk.id);
+                    }
+                } else {
+                    chunk.setVisibility(true);
+                }
+            });
+
+            this.gameScene.entities.forEach((entity) => {
+                const distX = Math.abs(Math.round(this.me!.position.x) - entity.position.x) / 16;
+                const distY = Math.abs(Math.round(this.me!.position.y) - entity.position.y) / 16;
+
+                if (distX > RENDER_DISTANCE || distY > RENDER_DISTANCE) {
+                    entity.setVisibility(false);
+                    if (distX > DELETE_DISTANCE || distY > DELETE_DISTANCE) {
+                        this.gameScene.entities.remove(entity.id);
+                    }
+                } else {
+                    entity.setVisibility(true);
+                }
+            });
+        }
+    }
+
+    requestChunks() {
+        if (this.me) {
+            for (let x = -REQUEST_DISTANCE; x <= REQUEST_DISTANCE; x++) {
+                for (let y = -REQUEST_DISTANCE; y <= REQUEST_DISTANCE; y++) {
+                    const chunkX = Math.round(this.me.position.x / 16) + x;
+                    const chunkY = Math.round(this.me.position.y / 16) + y;
+                    const chunkId = Chunk.getId(chunkX, chunkY);
+
+                    if (!this.gameScene.chunks.includes(chunkId)) {
+                        this.networkClient.requestChunk(chunkX, chunkY);
+                        this.gameScene.chunks.add(
+                            chunkId,
+                            new Chunk(this.gameScene, chunkX, chunkY).attachBabylon(this.babylonScene!),
+                        );
+                    }
+                }
+            }
+        }
     }
 
     render() {

@@ -1,4 +1,5 @@
-import { Texture, Scene, StandardMaterial } from '@babylonjs/core';
+import { Texture, Scene, StandardMaterial, Material } from 'babylonjs';
+import { SimpleTexture } from './SimpleTexture';
 import { textures } from './texturePack';
 
 export interface texturePack {
@@ -13,6 +14,7 @@ let resourceFiles = Object.values(textures).map((texture) => texture.filename);
 resourceFiles = resourceFiles.filter((v, i) => resourceFiles.indexOf(v) === i);
 
 let atlases: { [key: string]: HTMLImageElement } = {};
+let materials: { [key: string]: Material } = {};
 
 let loaded = 0;
 
@@ -44,13 +46,31 @@ export function loadTextures(onLoad: () => void, onStateChange?: (loaded: number
 }
 
 export function createTexture(texture: string, scene: Scene) {
-    const t = new Texture(RESOURCES_LOCATION + textures[texture].filename, scene, false, true, Texture.NEAREST_SAMPLINGMODE);
+    const t = new Texture(
+        RESOURCES_LOCATION + textures[texture].filename,
+        scene,
+        false,
+        true,
+        Texture.NEAREST_SAMPLINGMODE,
+    );
     t.uOffset = 0;
     t.vOffset = 0;
     t.uScale = 1 / textures[texture].width;
     t.vScale = 1;
     t.hasAlpha = true;
     return t;
+}
+
+export function getSimpleMaterial(textureAtlas: string, scene: Scene) {
+    if (materials[textureAtlas]) {
+        return materials[textureAtlas];
+    }
+
+    const texture = new SimpleTexture(textureAtlas, scene);
+    const material = createMaterial(texture.getTexture(), scene);
+    materials[textureAtlas] = material;
+
+    return material;
 }
 
 export function createMaterial(texture: Texture, scene: Scene) {

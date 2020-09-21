@@ -1,7 +1,7 @@
-import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from '@babylonjs/core';
-import { AbstractGameObject } from './AbstractGameObject';
-import { GameScene } from '../Scene';
-import { getImage } from '../textures/textureEngine';
+import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from 'babylonjs';
+import { AbstractGameObject } from './00_AbstractGameObject';
+import { GameScene } from './Scene';
+import { getImage } from '../../frontend/gameMechanics/textures/textureEngine';
 
 export type tileType = number;
 
@@ -12,7 +12,7 @@ export interface serializedChunk {
 }
 
 export class Chunk extends AbstractGameObject {
-    ground: tileType[][] = [[]];
+    public ground: tileType[][] = [[]];
 
     private texture: DynamicTexture;
 
@@ -81,7 +81,8 @@ export class Chunk extends AbstractGameObject {
             return;
         }
 
-        this.mesh.position = new Vector3(this.position.x * 16 * 100, -this.position.y * 16 * 100, 0);
+        this.mesh.position.x = this.position.x * 16 * 100;
+        this.mesh.position.y = -this.position.y * 16 * 100;
 
         const ctx = this.texture.getContext();
 
@@ -95,12 +96,33 @@ export class Chunk extends AbstractGameObject {
                     //     ctx.fillStyle = '#00000005';
                     //     ctx.fillRect(x * 16, y * 16, 16, 16);
                     // }
+                }
+            }
+        }
 
+        for (let x = 0; x < 16; x++) {
+            for (let y = 0; y < 16; y++) {
+                if (this.ground[x] && this.ground[x][y]) {
                     if (this.ground[x][y] === 2) {
-                        // Water, should have transition?
+                        // Water, should have transition
 
                         this.drawTransition(ctx, x, y, 1, 'grass_water');
                     }
+
+                    /*
+
+                    if (this.ground[x][y] === 3) {
+                        // Tree
+
+                        if ((x + y) % 2 === 0) {
+                            const shift = Math.floor(Math.random() * 16) - 8;
+
+                            const img = getImage(Math.random() > 0.4 ? "tree_big" : "tree_small");
+                            if (img) ctx.drawImage(img, x * 16 + shift, y * 16 + shift);
+                        }
+                    }
+
+                    */
                 }
             }
         }
@@ -163,14 +185,14 @@ export class Chunk extends AbstractGameObject {
         return super.detachBabylon();
     }
 
-    static getTerrainColor(number: number): string {
+    static getTerrainColor(number: number, minimap?: boolean): string {
         switch (number) {
             case 1: // Grass
                 return '#67943F';
             case 2: // Water
                 return '#2EB0E5';
             case 3: // Forrest
-                return '#6AA981';
+                return minimap ? '#6AA981' : '#67943F';
             case 4: // Sand
                 return '#FDDC86';
         }

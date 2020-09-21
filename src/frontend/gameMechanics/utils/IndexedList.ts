@@ -1,32 +1,6 @@
-import { Player } from './gameObjects/Player';
-import { Chunk } from './gameObjects/Chunk';
+import { AbstractGameObject } from '../../../shared/gameObjects/00_AbstractGameObject';
 
-export class GameScene {
-    players = new IndexedList<Player>();
-    chunks = new IndexedList<Chunk>();
-
-    tickAll(deltaTime: number) {
-        this.players.forEach((value) => value.tick(deltaTime));
-        this.chunks.forEach((value) => value.tick(deltaTime));
-    }
-
-    getTile(x: number, y: number) {
-        const calcX = Math.floor(x) + 8;
-        const calcY = Math.floor(y) + 8;
-
-        const chunkX = Math.floor(calcX / 16);
-        const chunkY = Math.floor(calcY / 16);
-        const chunk = this.chunks.get(Chunk.getId(chunkX, chunkY));
-
-        if (!chunk || !chunk.ground[calcX - chunkX * 16] || !chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16]) {
-            return -1;
-        }
-
-        return chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16];
-    }
-}
-
-class IndexedList<T extends Player | Chunk> {
+export class IndexedList<T extends AbstractGameObject> {
     values: { [key: string]: T } = {};
 
     addMore(values: { [key: string]: T }) {
@@ -43,15 +17,16 @@ class IndexedList<T extends Player | Chunk> {
         delete this.values[key];
     }
 
-    update(key: string, serialized: any, smooth?: boolean) {
-        this.values[key].deserialize(serialized, smooth);
+    update(key: string, serialized: any, dirty: boolean, smooth?: boolean) {
+        if (!this.includes(key)) return;
+        this.values[key].deserialize(serialized, dirty, smooth);
     }
 
-    updateOrCreate(key: string, serialized: any, newObjectCreator: () => T, smooth?: boolean) {
+    updateOrCreate(key: string, serialized: any, dirty: boolean, newObjectCreator: () => T, smooth?: boolean) {
         if (!this.includes(key)) {
             this.values[key] = newObjectCreator();
         }
-        this.values[key].deserialize(serialized, smooth);
+        this.values[key].deserialize(serialized, dirty, smooth);
     }
 
     get(key: string) {
@@ -83,5 +58,21 @@ class IndexedList<T extends Player | Chunk> {
         });
 
         return result;
+    }
+
+    map(callbackfn: (value: T, key: string, index: number) => any) {
+        return Object.keys(this.values).map((key, index) => callbackfn(this.values[key], key, index));
+    }
+
+    getValues() {
+        return Object.values(this.values);
+    }
+
+    getKeys() {
+        return Object.keys(this.values);
+    }
+
+    length() {
+        return this.getKeys().length;
     }
 }

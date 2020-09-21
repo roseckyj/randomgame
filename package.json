@@ -1,59 +1,65 @@
 {
-  "name": "randomgame",
-  "version": "0.1.0",
-  "private": true,
-  "homepage": "http://roseckyj.github.io/randomgame",
-  "dependencies": {
-    "@babylonjs/core": "^4.1.0",
-    "@babylonjs/gui": "^4.1.0",
-    "@babylonjs/loaders": "^4.1.0",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
-    "@testing-library/user-event": "^7.2.1",
-    "@types/express": "^4.17.8",
-    "@types/jest": "^26.0.13",
-    "@types/node": "^14.6.4",
-    "@types/react": "^16.9.49",
-    "@types/react-dom": "^16.9.8",
-    "@types/socket.io": "^2.1.11",
-    "@types/socket.io-client": "^1.4.33",
-    "babylonjs": "^4.1.0",
-    "cross-env": "^7.0.2",
-    "express": "^4.17.1",
-    "react": "^16.13.1",
-    "react-babylonjs": "^2.2.7",
-    "react-dom": "^16.13.1",
-    "react-reconciler": "^0.25.1",
-    "react-scripts": "3.4.3",
-    "socket.io": "^2.3.0",
-    "ts-node": "^9.0.0",
-    "typescript": "^4.0.2"
-  },
-  "scripts": {
-    "frontend-develop": "cross-env PORT=9976 react-scripts start",
-    "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\"",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "build": "react-scripts build"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "gh-pages": "^3.1.0",
-    "onchange": "^7.0.2",
-    "prettier": "^2.1.1"
-  }
+    "name": "randomgame",
+    "version": "0.1.0",
+    "private": true,
+    "homepage": "http://roseckyj.github.io/randomgame",
+    "dependencies": {
+        "@babylonjs/core": "^4.1.0",
+        "@babylonjs/gui": "^4.1.0",
+        "@babylonjs/loaders": "^4.1.0",
+        "@testing-library/jest-dom": "^4.2.4",
+        "@testing-library/react": "^9.5.0",
+        "@testing-library/user-event": "^7.2.1",
+        "@types/express": "^4.17.8",
+        "@types/jest": "^26.0.14",
+        "@types/node": "^14.11.1",
+        "@types/react": "^16.9.49",
+        "@types/react-dom": "^16.9.8",
+        "@types/socket.io": "^2.1.11",
+        "@types/socket.io-client": "^1.4.33",
+        "babylonjs": "^4.1.0",
+        "cross-env": "^7.0.2",
+        "express": "^4.17.1",
+        "react": "^16.13.1",
+        "react-babylonjs": "^2.2.7",
+        "react-dom": "^16.13.1",
+        "react-reconciler": "^0.25.1",
+        "react-scripts": "3.4.3",
+        "requestify": "^0.2.5",
+        "simplex-noise": "^2.4.0",
+        "socket.io": "^2.3.0",
+        "ts-node": "^9.0.0",
+        "typescript": "^4.0.3",
+        "uuidv4": "^6.2.3"
+    },
+    "scripts": {
+        "server-start": "ts-node --transpile-only --project ./src/backend/tsconfig.json ./src/backend.ts",
+        "server-develop": "onchange -i -k \"src/{backend,shared}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run server-start",
+        "frontend-develop": "cross-env PORT=9976 react-scripts start",
+        "prettier": "prettier --config .prettierrc --write \"{src,server,public,scripts}/**/*.{js,ts,tsx,json,css}\" \"*.json\"",
+        "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\"",
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build",
+        "build": "react-scripts build"
+    },
+    "eslintConfig": {
+        "extends": "react-app"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "gh-pages": "^3.1.0",
+        "onchange": "^7.0.2",
+        "prettier": "^2.1.2"
+    }
 }

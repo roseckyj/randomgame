@@ -1,7 +1,7 @@
 import React from 'react';
 
 import '@babylonjs/core/Physics/physicsEngineComponent';
-import babylonjs, { Vector3, UniversalCamera } from '@babylonjs/core';
+import babylonjs, { Vector3, UniversalCamera } from 'babylonjs';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';

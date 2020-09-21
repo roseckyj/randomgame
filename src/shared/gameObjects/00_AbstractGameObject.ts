@@ -1,4 +1,4 @@
-import { Mesh, Vector2, Scene } from '@babylonjs/core';
+import { Mesh, Vector2, Scene } from 'babylonjs';
 import { GameScene } from './Scene';
 
 export abstract class AbstractGameObject {

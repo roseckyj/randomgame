@@ -33,7 +33,7 @@
         "uuidv4": "^6.2.3"
     },
     "scripts": {
-        "server-start": "ts-node --transpile-only --project ./tsconfig.json ./src/backend.ts",
+        "server-start": "ts-node --transpile-only --project ./src/backend/tsconfig.json ./src/backend.ts",
         "server-develop": "onchange -i -k \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run start",
         "frontend-develop": "cross-env PORT=9976 react-scripts start",
         "prettier": "prettier --config .prettierrc --write \"{src,server,public,scripts}/**/*.{js,ts,tsx,json,css}\" \"*.json\"",

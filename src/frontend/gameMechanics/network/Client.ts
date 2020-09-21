@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import { Player, serializedPlayer } from '../../../shared/gameObjects/Player';
 import { GameScene } from '../../../shared/gameObjects/Scene';
-import babylonjs from '@babylonjs/core';
+import babylonjs from 'babylonjs';
 import { serializedChunk, Chunk } from '../../../shared/gameObjects/Chunk';
 import { messageEntities } from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';

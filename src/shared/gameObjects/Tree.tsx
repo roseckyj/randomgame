@@ -1,4 +1,4 @@
-import { Vector3, Mesh, Scene, MeshBuilder } from '@babylonjs/core';
+import { Vector3, Mesh, Scene, MeshBuilder } from 'babylonjs';
 import { createMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
 import { GameScene } from './Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';

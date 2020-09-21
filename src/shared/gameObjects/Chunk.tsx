@@ -1,4 +1,4 @@
-import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from '@babylonjs/core';
+import { Vector3, Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from 'babylonjs';
 import { AbstractGameObject } from './00_AbstractGameObject';
 import { GameScene } from './Scene';
 import { getImage } from '../../frontend/gameMechanics/textures/textureEngine';

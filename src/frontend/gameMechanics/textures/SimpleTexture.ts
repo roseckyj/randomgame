@@ -1,4 +1,4 @@
-import { Texture, Scene } from '@babylonjs/core';
+import { Texture, Scene } from 'babylonjs';
 import { textures } from './texturePack';
 import { RESOURCES_LOCATION } from './textureEngine';
 

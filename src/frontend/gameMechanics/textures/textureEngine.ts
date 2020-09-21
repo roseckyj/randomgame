@@ -1,4 +1,4 @@
-import { Texture, Scene, StandardMaterial } from '@babylonjs/core';
+import { Texture, Scene, StandardMaterial } from 'babylonjs';
 import { textures } from './texturePack';
 
 export interface texturePack {

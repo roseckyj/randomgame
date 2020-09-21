@@ -1,7 +1,7 @@
 import SimplexNoise from 'simplex-noise';
 import { AbstractMapGenerator } from './AbstractMapGenerator';
 import { uuid } from 'uuidv4';
-import { Vector2 } from '@babylonjs/core';
+import { Vector2 } from 'babylonjs';
 import { Chunk } from '../../shared/gameObjects/Chunk';
 import { Tree } from '../../shared/gameObjects/Tree';
 

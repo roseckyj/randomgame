@@ -3,7 +3,7 @@ import { uuid } from 'uuidv4';
 import { Player, serializedPlayer } from '../../shared/gameObjects/Player';
 import { GameScene } from '../../shared/gameObjects/Scene';
 import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
-import { messageMapRequest } from '../../shared/network/messageTypes';
+import { messageEntities, messageMapRequest } from '../../shared/network/messageTypes';
 
 const DISCONNECT_TIMEOUT = 10000;
 
@@ -20,6 +20,15 @@ export class ConnectedClient {
 
         this.player = new Player(this.scene, uuid());
         this.scene.entities.add(this.player.id, this.player);
+
+        this.socket.emit('auth', this.player.id);
+
+        const entities = this.scene.entities.filter((entity) => !entity.server_dead);
+        const message: messageEntities = {
+            updated: entities.map((value) => value.serialize()),
+            removed: [],
+        };
+        this.socket.emit('entities', message);
     }
 
     private setListeners() {
@@ -44,5 +53,6 @@ export class ConnectedClient {
 
     private die() {
         this.alive = false;
+        this.player.server_dead = true;
     }
 }

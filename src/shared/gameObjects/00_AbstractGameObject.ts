@@ -35,5 +35,9 @@ export abstract class AbstractGameObject {
         if (this.mesh) this.mesh.setEnabled(visible);
     }
 
+    getVisibility() {
+        return !!this.mesh && this.mesh.isEnabled();
+    }
+
     abstract get id(): string;
 }

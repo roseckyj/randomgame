@@ -34,7 +34,7 @@
     },
     "scripts": {
         "server-start": "ts-node --transpile-only --project ./src/backend/tsconfig.json ./src/backend.ts",
-        "server-develop": "onchange -i -k \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run start",
+        "server-develop": "onchange -i -k \"src/{backend,shared}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run server-start",
         "frontend-develop": "cross-env PORT=9976 react-scripts start",
         "prettier": "prettier --config .prettierrc --write \"{src,server,public,scripts}/**/*.{js,ts,tsx,json,css}\" \"*.json\"",
         "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\"",

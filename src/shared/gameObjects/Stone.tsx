@@ -4,11 +4,11 @@ import { GameScene } from './Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
 import { SimpleTexture } from '../../frontend/gameMechanics/textures/SimpleTexture';
 
-export interface serializedTree {
+export interface serializedStone {
     size: 1 | 2;
 }
 
-export class Tree extends AbstractGameEntity {
+export class Stone extends AbstractGameEntity {
     private texture: SimpleTexture;
     public size: 1 | 2;
 
@@ -16,17 +16,17 @@ export class Tree extends AbstractGameEntity {
         super(gameScene);
     }
 
-    serialize(): serializedEntity<serializedTree> {
-        let sup = super.serialize() as serializedEntity<serializedTree>;
-        sup.type = Tree.type;
+    serialize(): serializedEntity<serializedStone> {
+        let sup = super.serialize() as serializedEntity<serializedStone>;
+        sup.type = Stone.type;
         sup.data = {
             size: this.size,
         };
         return sup;
     }
 
-    deserialize(serialized: serializedEntity<serializedTree>, dirty: boolean): void {
-        if (serialized.type !== Tree.type) return;
+    deserialize(serialized: serializedEntity<serializedStone>, dirty: boolean): void {
+        if (serialized.type !== Stone.type) return;
 
         this.position.x = serialized.x;
         this.position.y = serialized.y;
@@ -37,7 +37,7 @@ export class Tree extends AbstractGameEntity {
     tick(deltaTime: number) {}
 
     static get type() {
-        return 'tree';
+        return 'stone';
     }
 
     // ========== BABYLON ===========
@@ -50,11 +50,11 @@ export class Tree extends AbstractGameEntity {
         const size = this.getSize();
 
         this.mesh = MeshBuilder.CreatePlane(
-            'tree',
+            'stone',
             { width: size.x, height: size.y, sideOrientation: Mesh.FRONTSIDE },
             this.babylonScene,
         );
-        this.mesh.material = getSimpleMaterial(this.size === 1 ? 'tree_small' : 'tree_big', this.babylonScene);
+        this.mesh.material = getSimpleMaterial(this.size === 1 ? 'rock_small' : 'rock_big', this.babylonScene);
 
         this.updateMesh();
         return this;
@@ -62,7 +62,7 @@ export class Tree extends AbstractGameEntity {
 
     async updateMesh() {
         if (!this.mesh || !this.babylonScene) return;
-        this.mesh.material = getSimpleMaterial(this.size === 1 ? 'tree_small' : 'tree_big', this.babylonScene);
+        this.mesh.material = getSimpleMaterial(this.size === 1 ? 'rock_small' : 'rock_big', this.babylonScene);
         super.updateMesh();
     }
 
@@ -72,7 +72,6 @@ export class Tree extends AbstractGameEntity {
     }
 
     getSize() {
-        const treeScale = 1.5;
-        return new Vector2(100 * treeScale, 200 * treeScale);
+        return new Vector2(100, 100);
     }
 }

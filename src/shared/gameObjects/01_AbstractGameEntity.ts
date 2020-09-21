@@ -1,3 +1,5 @@
+import { Vector2 } from 'babylonjs';
+import { CAMERA_ANGLE } from '../constants';
 import { AbstractGameObject } from './00_AbstractGameObject';
 
 export interface serializedEntity<T> {
@@ -37,6 +39,18 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         this.dirty = true;
         this.server_dead = true;
     }
+
+    public async updateMesh(): Promise<void> {
+        if (this.mesh) {
+            this.mesh.position.z = -(this.getSize().y * Math.cos(CAMERA_ANGLE)) / 2;
+            this.mesh.rotation.x = -CAMERA_ANGLE;
+
+            this.mesh.position.x = this.position.x * 100;
+            this.mesh.position.y = -this.position.y * 100 - this.getSize().y;
+        }
+    }
+
+    abstract getSize(): Vector2;
 
     static get type(): string {
         return 'unknown';

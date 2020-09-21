@@ -10,7 +10,7 @@ export class NetworkServer {
     socketServer: SocketIO.Server = require('socket.io')(http);
     connectedClients: ConnectedClient[] = [];
 
-    constructor(private port: number | string, private scene: GameScene, private mapGenerator: AbstractMapGenerator) {
+    constructor(private port: number | string, private scene: GameScene, mapGenerator: AbstractMapGenerator) {
         this.socketServer.on('connection', (socket: SocketIO.Socket) => {
             this.connectedClients.push(new ConnectedClient(socket, scene, mapGenerator));
         });
@@ -29,22 +29,19 @@ export class NetworkServer {
     }
 
     public sendUpdates() {
-        const updated: serializedEntity<any>[] = this.scene.entities
-            .filter((player) => player.dirty)
-            .map((value) => value.serialize());
-        const removed: serializedEntity<any>[] = this.scene.entities
-            .filter((player) => player.server_dead)
-            .map((value) => value.serialize());
+        const dirty = this.scene.entities.filter((entity) => entity.dirty);
+        const dead = this.scene.entities.filter((entity) => entity.server_dead);
 
         const message: messageEntities = {
-            updated,
-            removed,
+            updated: dirty.map((value) => value.serialize()),
+            removed: dead.map((value) => value.serialize()),
         };
 
         this.socketServer.emit('entities', message);
 
-        this.scene.entities
-            .filter((player) => player.server_dead)
-            .forEach((value, key) => this.scene.entities.remove(key));
+        dead.forEach((value, key) => this.scene.entities.remove(key));
+        dirty.forEach((value) => value.clean());
+
+        //console.log("dirty: ", dirty.getKeys().length, "  dead: ", dead.getKeys().length)
     }
 }

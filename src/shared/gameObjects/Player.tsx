@@ -1,8 +1,9 @@
-import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture } from 'babylonjs';
+import { Vector3, Mesh, Scene, MeshBuilder, DynamicTexture, Texture, Vector2 } from 'babylonjs';
 import { createMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
 import { AnimatedTexture } from '../../frontend/gameMechanics/textures/AnimatedTexture';
 import { GameScene } from './Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
+import { CAMERA_ANGLE } from '../constants';
 
 export interface serializedPlayer {
     velocityX: number;
@@ -16,7 +17,7 @@ export interface keyBindings {
     right: number;
 }
 
-const SPEED_CHANGE = 0.2;
+const SPEED_CHANGE = 0.002;
 const SLOWING = 0.95;
 const MODIFIER = 0.1;
 const SMOOTH_TIME = 50;
@@ -140,10 +141,10 @@ export class Player extends AbstractGameEntity {
         this.velocityX *= Math.pow(SLOWING, deltaTimeModified);
         this.velocityY *= Math.pow(SLOWING, deltaTimeModified);
 
-        if (Math.abs(this.velocityX) < 0.1) {
+        if (Math.abs(this.velocityX) < 0.001) {
             this.velocityX = 0;
         }
-        if (Math.abs(this.velocityY) < 0.1) {
+        if (Math.abs(this.velocityY) < 0.001) {
             this.velocityY = 0;
         }
 
@@ -151,6 +152,7 @@ export class Player extends AbstractGameEntity {
             // Should check speed also, but f*ck it
             this.dirty = true;
         }
+
         this.updateMesh();
     }
 
@@ -172,6 +174,10 @@ export class Player extends AbstractGameEntity {
         this.keyBindings = { ...this.keyBindings, ...newBindings };
     }
 
+    static get type() {
+        return 'player';
+    }
+
     // ========== BABYLON ===========
 
     attachBabylon(scene: Scene) {
@@ -179,9 +185,11 @@ export class Player extends AbstractGameEntity {
 
         if (!this.babylonScene) return this;
 
+        const size = this.getSize();
+
         this.mesh = MeshBuilder.CreatePlane(
             'player',
-            { width: 100, height: 200, sideOrientation: Mesh.FRONTSIDE },
+            { width: size.x, height: size.y, sideOrientation: Mesh.FRONTSIDE },
             this.babylonScene,
         );
         this.texture = new AnimatedTexture('player', this.babylonScene, 'default');
@@ -222,9 +230,9 @@ export class Player extends AbstractGameEntity {
 
     async updateMesh() {
         if (!this.mesh) return;
-        this.mesh.position = new Vector3(this.position.x, -this.position.y, -1);
+        super.updateMesh();
 
-        const WALKING_THRESHOLD = 1;
+        const WALKING_THRESHOLD = 0.01;
         if (Math.abs(this.velocityX) > WALKING_THRESHOLD || Math.abs(this.velocityY) > WALKING_THRESHOLD) {
             this.texture.queueOnce('walking');
         } else {
@@ -233,13 +241,9 @@ export class Player extends AbstractGameEntity {
     }
 
     detachBabylon() {
-        this.texture.detach();
         if (this.babylonScene && this.mesh) {
             const child = this.mesh.getChildMeshes()[0];
 
-            if (this.mesh.material) {
-                this.babylonScene.removeMaterial(this.mesh.material);
-            }
             if (this.titleTexture && child && child.material) {
                 this.babylonScene.removeTexture(this.titleTexture);
                 this.babylonScene.removeMaterial(child.material);
@@ -250,7 +254,7 @@ export class Player extends AbstractGameEntity {
         return super.detachBabylon();
     }
 
-    static get type() {
-        return 'player';
+    getSize() {
+        return new Vector2(100, 200);
     }
 }

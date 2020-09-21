@@ -6,6 +6,7 @@ import { serializedChunk, Chunk } from '../../../shared/gameObjects/Chunk';
 import { messageEntities } from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';
 import { Tree } from '../../../shared/gameObjects/Tree';
+import { Stone } from '../../../shared/gameObjects/Stone';
 
 type callback = (data: any) => void;
 
@@ -33,10 +34,10 @@ export class NetworkClient {
         this.socket = io(this.apiUrl);
         this.setListeners();
 
-        this.socket.on('id', (data: string) => {
+        this.socket.on('auth', (data: string) => {
             this.userId = data;
             this.callbacks['authenticated']({ id: data });
-            console.log('Joined game with player ID: ', data);
+            console.log('Joined game with player ID:', data);
         });
     }
 
@@ -50,10 +51,12 @@ export class NetworkClient {
     }
 
     private setListeners() {
-        this.socket.on('entity', (data: messageEntities) => {
-            data.removed.forEach((entity) => this.scene.entities.remove(entity.id));
-            data.updated.forEach((entity) =>
-                this.scene.entities.updateOrCreate(entity.id, entity, false, () => this.createEntity(entity)!),
+        this.socket.on('entities', (data: messageEntities) => {
+            data.removed.forEach((entity) => entity.id !== this.userId && this.scene.entities.remove(entity.id));
+            data.updated.forEach(
+                (entity) =>
+                    entity.id !== this.userId &&
+                    this.scene.entities.updateOrCreate(entity.id, entity, false, () => this.createEntity(entity)!),
             );
         });
 
@@ -80,6 +83,12 @@ export class NetworkClient {
             }
             case 'tree': {
                 const e = new Tree(this.scene, entity.id);
+                e.attachBabylon(this.getBabylonScene());
+                e.deserialize(entity, false);
+                return e;
+            }
+            case 'stone': {
+                const e = new Stone(this.scene, entity.id);
                 e.attachBabylon(this.getBabylonScene());
                 e.deserialize(entity, false);
                 return e;

@@ -25,7 +25,7 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
 
     for (let x = -MINIMAP_DISTANCE; x <= MINIMAP_DISTANCE; x++) {
         for (let y = -MINIMAP_DISTANCE; y <= MINIMAP_DISTANCE; y++) {
-            gui.fillStyle = Chunk.getTerrainColor(gameScene.getTile(me.position.x / 100 + x, me.position.y / 100 + y));
+            gui.fillStyle = Chunk.getTerrainColor(gameScene.getTile(me.position.x + x, me.position.y + y), true);
             gui.fillRect(x0 + x * MINIMAP_SCALE, y0 + y * MINIMAP_SCALE, MINIMAP_SCALE, MINIMAP_SCALE);
         }
     }
@@ -37,13 +37,13 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
     gui.fillText('x', x0, y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10);
     gui.textAlign = 'right';
     gui.fillText(
-        Math.round(me.position.x / 100).toString(),
+        Math.round(me.position.x).toString(),
         x0 - 10,
         y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
     );
     gui.textAlign = 'left';
     gui.fillText(
-        Math.round(me.position.y / 100).toString(),
+        Math.round(me.position.y).toString(),
         x0 + 10,
         y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
     );

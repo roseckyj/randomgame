@@ -4,11 +4,16 @@ import { uuid } from 'uuidv4';
 import { Vector2 } from 'babylonjs';
 import { Chunk } from '../../shared/gameObjects/Chunk';
 import { Tree } from '../../shared/gameObjects/Tree';
+import { Stone } from '../../shared/gameObjects/Stone';
 
 export class SimpleMapGenerator extends AbstractMapGenerator {
     simplex = new SimplexNoise(this.seed.toString());
 
     async generateChunk(chunkX: number, chunkY: number) {
+        if (this.scene.chunks.includes(Chunk.getId(chunkX, chunkY))) {
+            return this.scene.chunks.get(Chunk.getId(chunkX, chunkY))!;
+        }
+
         let chunkData: number[][] = [];
 
         for (let x = 0; x < 16; x++) {
@@ -31,6 +36,8 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
     }
 
     getTerrainTile(x: number, y: number): number {
+        const RANDOMNESS = 0.3;
+
         const WATER_SCALE = 0.01;
         const FORREST_SCALE = 0.01;
 
@@ -44,17 +51,29 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
             }
             return 2; // Water
         }
+
+        if (Math.random() > 0.995) {
+            // Stone
+            const stone = new Stone(this.scene, uuid());
+            stone.position = new Vector2(
+                x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+                y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+            );
+            stone.size = Math.random() > 0.7 ? 1 : 2;
+            this.scene.entities.add(stone.id, stone);
+        }
+
         if (forrest > 0) {
             // Forrest
-            if ((x + y) % 2 === 0 || forrest > 0.6) {
-                const RANDOMNESS = 0.3;
-
+            if (Math.random() > 2 - forrest * 2) {
                 const tree = new Tree(this.scene, uuid());
                 tree.position = new Vector2(
-                    x + Math.random() * 2 * RANDOMNESS - RANDOMNESS,
-                    y + Math.random() * 2 * RANDOMNESS - RANDOMNESS,
+                    x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+                    y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                 );
+                tree.size = Math.random() > 0.5 ? 1 : 2;
                 this.scene.entities.add(tree.id, tree);
+                return 3;
             }
             return 1;
         }

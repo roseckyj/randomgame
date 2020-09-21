@@ -11,10 +11,9 @@ export class GameCore {
 
     constructor(port: number) {
         this.gameScene = new GameScene();
+        this.mapGenerator = new SimpleMapGenerator(this.gameScene);
         this.networkServer = new NetworkServer(port, this.gameScene, this.mapGenerator);
         this.networkServer.open();
-
-        this.mapGenerator = new SimpleMapGenerator(this.gameScene);
 
         this.timer = setInterval(() => {
             this.networkServer.sendUpdates();

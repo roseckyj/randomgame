@@ -18,6 +18,7 @@ export class IndexedList<T extends AbstractGameObject> {
     }
 
     update(key: string, serialized: any, dirty: boolean, smooth?: boolean) {
+        if (!this.includes(key)) return;
         this.values[key].deserialize(serialized, dirty, smooth);
     }
 
@@ -69,5 +70,9 @@ export class IndexedList<T extends AbstractGameObject> {
 
     getKeys() {
         return Object.keys(this.values);
+    }
+
+    length() {
+        return this.getKeys().length;
     }
 }

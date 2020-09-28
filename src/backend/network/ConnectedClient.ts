@@ -94,6 +94,9 @@ export class ConnectedClient {
     }
 
     private keepAlive() {
+        if (this.player) {
+            this.player.server_dead = false;
+        }
         this.alive = true;
         clearTimeout(this.aliveTimeout);
         this.aliveTimeout = this.aliveTimeout = setTimeout(() => this.die(), DISCONNECT_TIMEOUT);

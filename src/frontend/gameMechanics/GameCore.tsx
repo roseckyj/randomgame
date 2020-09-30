@@ -216,14 +216,25 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         };
 
         /*
-        const pipeline = new BABYLON.DefaultRenderingPipeline('defaultPipeline', false, this.babylonScene as any, [
+        var pipeline = new BABYLON.LensRenderingPipeline(
+            'lens',
+            {
+                edge_blur: 0.2,
+                chromatic_aberration: 0.2,
+                distortion: 0.1,
+                grain_amount: 0.1,
+
+                dof_focus_distance: (CAMERA_DISTANCE * this.zoom) / Math.cos(CAMERA_ANGLE),
+                dof_aperture: 100, // set this very high for tilt-shift effect
+                dof_pentagon: true,
+                dof_gain: 1.0,
+                dof_threshold: 1.0,
+                dof_darken: 0.25,
+            },
+            scene as any,
+            1.0,
             camera as any,
-        ]);
-        pipeline.samples = 4;
-        pipeline.depthOfFieldEnabled = true;
-        pipeline.depthOfField.focusDistance  = 2000; // distance of the current focus point from the camera in millimeters considering 1 scene unit is 1 meter
-        pipeline.depthOfField.focalLength  = 50; // focal length of the camera in millimeters
-        pipeline.depthOfField.fStop  = 1.4; // aka F number of the camera defined in stops as it would be on a physical device
+        );
         */
 
         scene.getEngine().runRenderLoop(() => {
@@ -236,6 +247,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                         -this.me.position.y * 100 - CAMERA_DISTANCE * this.zoom * Math.tan(CAMERA_ANGLE),
                         -CAMERA_DISTANCE * this.zoom,
                     );
+
+                    //pipeline.setFocusDistance((CAMERA_DISTANCE * this.zoom) / Math.cos(CAMERA_ANGLE));
 
                     skybox.position.x = this.me.position.x * 100;
                     skybox.position.y = -this.me.position.y * 100;

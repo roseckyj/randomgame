@@ -1,6 +1,6 @@
 import { Mesh, Scene, MeshBuilder, Vector2 } from 'babylonjs';
 import { getSimpleMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
-import { GameScene } from './Scene';
+import { GameScene } from '../Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
 import { SimpleTexture } from '../../frontend/gameMechanics/textures/SimpleTexture';
 
@@ -11,7 +11,8 @@ export interface serializedTree {
 }
 
 export class Tree extends AbstractGameEntity {
-    private texture: SimpleTexture;
+    public hitbox = { width: 0.2, height: 0.2 };
+
     public size: treeTypes;
 
     constructor(gameScene: GameScene, public id: string) {
@@ -27,13 +28,13 @@ export class Tree extends AbstractGameEntity {
         return sup;
     }
 
-    deserialize(serialized: serializedEntity<serializedTree>, dirty: boolean): void {
+    deserialize(serialized: serializedEntity<serializedTree>): void {
         if (serialized.type !== Tree.type) return;
 
         this.position.x = serialized.x;
         this.position.y = serialized.y;
         this.size = serialized.data.size;
-        super.deserialize(serialized, dirty);
+        super.deserialize(serialized);
     }
 
     tick(deltaTime: number) {}
@@ -44,22 +45,22 @@ export class Tree extends AbstractGameEntity {
 
     // ========== BABYLON ===========
 
-    attachBabylon(scene: Scene) {
-        super.attachBabylon(scene);
+    async attachBabylon(scene: Scene) {
+        if (this.babylonScene) return;
+        await super.attachBabylon(scene);
 
-        if (!this.babylonScene) return this;
+        if (!this.babylonScene) return;
 
         const size = this.getSize();
 
         this.mesh = MeshBuilder.CreatePlane(
-            'tree',
+            'tree ' + this.id,
             { width: size.x, height: size.y, sideOrientation: Mesh.FRONTSIDE },
             this.babylonScene,
         );
         this.setMaterial();
 
         this.updateMesh();
-        return this;
     }
 
     async updateMesh() {
@@ -87,9 +88,9 @@ export class Tree extends AbstractGameEntity {
         }
     }
 
-    detachBabylon() {
+    async detachBabylon() {
         // Mesh detached by super
-        return super.detachBabylon();
+        super.detachBabylon();
     }
 
     getSize() {

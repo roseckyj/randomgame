@@ -1,12 +1,12 @@
 import io from 'socket.io-client';
-import { Player, serializedPlayer } from '../../../shared/gameObjects/Player';
-import { GameScene } from '../../../shared/gameObjects/Scene';
+import { Player, serializedPlayer } from '../../../shared/gameObjects/20_Player';
+import { GameScene } from '../../../shared/Scene';
 import babylonjs from 'babylonjs';
-import { serializedChunk, Chunk } from '../../../shared/gameObjects/Chunk';
+import { serializedChunk, Chunk } from '../../../shared/gameObjects/10_Chunk';
 import { messageEntities, messageError, messageLogin } from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';
-import { Tree } from '../../../shared/gameObjects/Tree';
-import { Stone } from '../../../shared/gameObjects/Stone';
+import { Tree } from '../../../shared/gameObjects/20_Tree';
+import { Stone } from '../../../shared/gameObjects/20_Stone';
 import md5 from 'md5';
 
 type callback = (data: any) => void;
@@ -64,24 +64,42 @@ export class NetworkClient {
     private setListeners() {
         this.socket.on('entities', async (data: messageEntities) => {
             data.removed.forEach((entity) => entity.id !== this.userId && this.scene.entities.remove(entity.id));
-            data.updated.forEach(
-                (entity) =>
-                    entity.id !== this.userId &&
-                    this.scene.entities.updateOrCreate(entity.id, entity, false, () => this.createEntity(entity)!),
-            );
+            data.updated /*.filter((entity) => {
+                const me = this.scene.entities.get(this.userId);
+                if (!me) return false;
+
+                const distX = Math.abs(Math.round(me.position.x) - entity.x) / 16;
+                const distY = Math.abs(Math.round(me.position.y) - entity.y) / 16;
+
+                return distX <= MAX_RENDER_DISTANCE && distY <= MAX_RENDER_DISTANCE;
+            })*/
+                .forEach(
+                    (entity) =>
+                        entity.id !== this.userId &&
+                        this.scene.entities.updateOrCreate(entity.id, entity, () => this.createEntity(entity)!),
+                );
             this.callbacks.updated({});
         });
 
         this.socket.on('mapChunk', async (data: serializedChunk) => {
             const id = Chunk.getId(data.x, data.y);
 
-            this.scene.chunks.updateOrCreate(id, data, false, () =>
-                new Chunk(this.scene, data.x, data.y).attachBabylon(this.getBabylonScene()),
-            );
+            this.scene.chunks.updateOrCreate(id, data, () => {
+                const chunk = new Chunk(this.scene, data.x, data.y);
+                chunk.attachBabylon(this.getBabylonScene());
+                return chunk;
+            });
 
-            this.scene.chunks
-                .filter((value) => Math.abs(value.position.x - data.x) <= 1 && Math.abs(value.position.y - data.y) <= 1)
-                .forEach((value) => value.updateMesh());
+            /*
+            for (let x = -1; x <= 1; x++) {
+                for (let y = -1; y <= 1; y++) {
+                    const ch = this.scene.chunks.get(Chunk.getId(data.x + x, data.y + y));
+                    if (ch) {
+                        ch.updateMesh();
+                    }
+                }
+            }
+            */
         });
 
         this.socket.on('err', async (data: messageError) => {
@@ -96,20 +114,17 @@ export class NetworkClient {
         switch (entity.type) {
             case 'player': {
                 const e = new Player(this.scene, entity.id);
-                e.attachBabylon(this.getBabylonScene());
-                e.deserialize(entity, false, true);
+                e.deserialize(entity, true);
                 return e;
             }
             case 'tree': {
                 const e = new Tree(this.scene, entity.id);
-                e.attachBabylon(this.getBabylonScene());
-                e.deserialize(entity, false);
+                e.deserialize(entity);
                 return e;
             }
             case 'stone': {
                 const e = new Stone(this.scene, entity.id);
-                e.attachBabylon(this.getBabylonScene());
-                e.deserialize(entity, false);
+                e.deserialize(entity);
                 return e;
             }
         }

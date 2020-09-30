@@ -1,6 +1,6 @@
-import { Chunk } from './Chunk';
-import { IndexedList } from '../../frontend/gameMechanics/utils/IndexedList';
-import { AbstractGameEntity } from './01_AbstractGameEntity';
+import { Chunk } from './gameObjects/10_Chunk';
+import { IndexedList } from './utils/IndexedList';
+import { AbstractGameEntity } from './gameObjects/01_AbstractGameEntity';
 
 export class GameScene {
     entities = new IndexedList<AbstractGameEntity>();
@@ -24,5 +24,9 @@ export class GameScene {
         }
 
         return chunk.ground[calcX - chunkX * 16][calcY - chunkY * 16];
+    }
+
+    getColisions(entity: AbstractGameEntity) {
+        return this.entities.filter((value) => entity !== value && value.colidesWith(entity));
     }
 }

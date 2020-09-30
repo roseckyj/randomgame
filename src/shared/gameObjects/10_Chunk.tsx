@@ -1,6 +1,6 @@
 import { Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Vector2 } from 'babylonjs';
 import { AbstractGameObject } from './00_AbstractGameObject';
-import { GameScene } from './Scene';
+import { GameScene } from '../Scene';
 import { getImage } from '../../frontend/gameMechanics/textures/textureEngine';
 
 export type tileType = number;
@@ -47,18 +47,18 @@ export class Chunk extends AbstractGameObject {
 
     // ========== BABYLON ===========
 
-    attachBabylon(scene: Scene) {
+    async attachBabylon(scene: Scene) {
         super.attachBabylon(scene);
 
         if (this.babylonScene) {
             this.mesh = MeshBuilder.CreatePlane(
-                'chunk',
+                'chunk ' + this.id,
                 { width: 1600, height: 1600, sideOrientation: Mesh.FRONTSIDE },
                 this.babylonScene,
             );
 
             const texture = new DynamicTexture(
-                'chunkTexture',
+                'chunkTexture ' + this.id,
                 { width: 16 * 16, height: 16 * 16 },
                 this.babylonScene,
                 true,
@@ -66,14 +66,12 @@ export class Chunk extends AbstractGameObject {
             );
 
             this.texture = texture;
-            const material = new StandardMaterial('mat', this.babylonScene);
+            const material = new StandardMaterial('mat ' + this.id, this.babylonScene);
             material.emissiveTexture = texture;
             this.mesh.material = material;
 
             this.updateMesh();
         }
-
-        return this;
     }
 
     async updateMesh() {

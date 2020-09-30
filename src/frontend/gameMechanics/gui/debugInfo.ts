@@ -1,5 +1,5 @@
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { GameScene } from '../../../shared/gameObjects/Scene';
+import { GameScene } from '../../../shared/Scene';
 import { shadeText } from '../utils/shadeText';
 
 export function debugInfo(guiTexture: AdvancedDynamicTexture, gameScene: GameScene, deltaTime: number) {

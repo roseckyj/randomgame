@@ -4,18 +4,18 @@ import babylonjs, { Vector3, UniversalCamera, StandardMaterial, MeshBuilder } fr
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { Player, serializedPlayer } from '../../shared/gameObjects/Player';
-import { Chunk } from '../../shared/gameObjects/Chunk';
-import { GameScene } from '../../shared/gameObjects/Scene';
+import { Player, serializedPlayer } from '../../shared/gameObjects/20_Player';
+import { Chunk } from '../../shared/gameObjects/10_Chunk';
+import { GameScene } from '../../shared/Scene';
 import { CONTROLS_WASD } from '../keyBindings';
 import { NetworkClient } from './network/Client';
 import { minimap } from './gui/minimap';
 import { debugInfo } from './gui/debugInfo';
 import { CAMERA_ANGLE, CAMERA_DISTANCE } from '../../shared/constants';
 import { shadeText } from './utils/shadeText';
-import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
+import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
 
-const MAX_RENDER_DISTANCE = 3;
+export const MAX_RENDER_DISTANCE = 3;
 const REQUEST_DISTANCE = 3;
 const DELETE_DISTANCE = 5;
 
@@ -47,6 +47,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
 
     loginRef = createRef<HTMLInputElement>();
     passwordRef = createRef<HTMLInputElement>();
+
+    mouseEntity: AbstractGameEntity | null;
 
     constructor(props: IGameCoreProps) {
         super(props);
@@ -80,8 +82,6 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         });
 
         document.addEventListener('wheel', (event) => {
-            event.preventDefault();
-
             this.zoom += (event.deltaY / Math.abs(event.deltaY)) * 0.12;
             if (this.zoom < 0.5) this.zoom = 0.5;
             if (this.zoom > 3) this.zoom = 3;
@@ -109,16 +109,17 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.me = new Player(this.gameScene, player.id);
         this.me.attachBabylon(this.babylonScene!);
         this.me.bindKeys(CONTROLS_WASD);
-        this.me.deserialize(player, false, false);
+        this.me.deserialize(player, false);
         this.gameScene.entities.add(player.id, this.me);
 
         (window as any).player = this.me;
         (window as any).scene = this.gameScene;
         (window as any).enableDebug = () => {
+            this.babylonScene && this.babylonScene.debugLayer.show();
             this.debug = true;
         };
 
-        this.timer = setInterval(() => {
+        this.timer = setInterval(async () => {
             if (this.me) this.networkClient.sendPlayerUpdate(this.me);
         }, 100);
     }
@@ -198,6 +199,33 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
 
         this.guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('GUI', true, scene);
 
+        scene.onPointerDown = (_, pickResult) => {
+            if (pickResult.hit && pickResult.pickedMesh && !pickResult.pickedMesh.name.startsWith('chunk')) {
+                this.mouseEntity = this.gameScene.entities.get(pickResult.pickedMesh.name.split(' ')[1]);
+                if (this.mouseEntity) {
+                    this.mouseEntity.mouseDown();
+                }
+            } else {
+                this.mouseEntity = null;
+            }
+        };
+        scene.onPointerUp = () => {
+            if (this.mouseEntity) {
+                this.mouseEntity.mouseUp();
+            }
+        };
+
+        /*
+        const pipeline = new BABYLON.DefaultRenderingPipeline('defaultPipeline', false, this.babylonScene as any, [
+            camera as any,
+        ]);
+        pipeline.samples = 4;
+        pipeline.depthOfFieldEnabled = true;
+        pipeline.depthOfField.focusDistance  = 2000; // distance of the current focus point from the camera in millimeters considering 1 scene unit is 1 meter
+        pipeline.depthOfField.focalLength  = 50; // focal length of the camera in millimeters
+        pipeline.depthOfField.fStop  = 1.4; // aka F number of the camera defined in stops as it would be on a physical device
+        */
+
         scene.getEngine().runRenderLoop(() => {
             this.tick(scene.getEngine().getDeltaTime());
 
@@ -213,7 +241,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                     skybox.position.y = -this.me.position.y * 100;
                 }
 
-                this.renderDistance = Math.min(Math.ceil(this.zoom + 0.5), MAX_RENDER_DISTANCE);
+                this.renderDistance = Math.min(Math.ceil(this.zoom * 2), MAX_RENDER_DISTANCE);
             })();
 
             if (scene) {
@@ -247,7 +275,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                         this.gameScene.entities.remove(entity.id);
                     }
                 } else {
-                    entity.setVisibility(true);
+                    entity.setVisibilityAttachBabylon(true, this.babylonScene!);
                 }
             });
         }
@@ -263,10 +291,11 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
 
                     if (!this.gameScene.chunks.includes(chunkId)) {
                         this.networkClient.requestChunk(chunkX, chunkY);
-                        this.gameScene.chunks.add(
-                            chunkId,
-                            new Chunk(this.gameScene, chunkX, chunkY).attachBabylon(this.babylonScene!),
-                        );
+
+                        const chunk = new Chunk(this.gameScene, chunkX, chunkY);
+                        chunk.attachBabylon(this.babylonScene!);
+
+                        this.gameScene.chunks.add(chunkId, chunk);
                     }
                 }
             }

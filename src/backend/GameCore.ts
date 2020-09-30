@@ -1,7 +1,7 @@
 import { NetworkServer } from './network/Server';
 import { SimpleMapGenerator } from './mapGenerator/SimpleMapGenerator';
 import { AbstractMapGenerator } from './mapGenerator/AbstractMapGenerator';
-import { GameScene } from '../shared/gameObjects/Scene';
+import { GameScene } from '../shared/Scene';
 
 export class GameCore {
     gameScene: GameScene;

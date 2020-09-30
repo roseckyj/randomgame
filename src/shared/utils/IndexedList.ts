@@ -1,4 +1,4 @@
-import { AbstractGameObject } from '../../../shared/gameObjects/00_AbstractGameObject';
+import { AbstractGameObject } from '../gameObjects/00_AbstractGameObject';
 
 export class IndexedList<T extends AbstractGameObject> {
     values: { [key: string]: T } = {};
@@ -12,30 +12,30 @@ export class IndexedList<T extends AbstractGameObject> {
     }
 
     remove(key: string) {
-        if (!this.includes(key)) return;
+        if (!this.values[key]) return;
         this.values[key].detachBabylon();
         delete this.values[key];
     }
 
-    update(key: string, serialized: any, dirty: boolean, smooth?: boolean) {
-        if (!this.includes(key)) return;
-        this.values[key].deserialize(serialized, dirty, smooth);
+    update(key: string, serialized: any, smooth?: boolean) {
+        if (!this.values[key]) return;
+        this.values[key].deserialize(serialized, smooth);
     }
 
-    updateOrCreate(key: string, serialized: any, dirty: boolean, newObjectCreator: () => T, smooth?: boolean) {
-        if (!this.includes(key)) {
+    updateOrCreate(key: string, serialized: any, newObjectCreator: () => T, smooth?: boolean) {
+        if (!this.values[key]) {
             this.values[key] = newObjectCreator();
         }
-        this.values[key].deserialize(serialized, dirty, smooth);
+        this.values[key].deserialize(serialized, smooth);
     }
 
     get(key: string) {
-        if (!this.includes(key)) return null;
+        if (!this.values[key]) return null;
         return this.values[key];
     }
 
     includes(key: string) {
-        return Object.keys(this.values).includes(key);
+        return !!this.values[key];
     }
 
     forEach(callbackfn: (value: T, key: string, index: number) => void) {

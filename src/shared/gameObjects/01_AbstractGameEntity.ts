@@ -1,4 +1,4 @@
-import { Vector2 } from 'babylonjs';
+import { Scene, Vector2 } from 'babylonjs';
 import { CAMERA_ANGLE } from '../constants';
 import { AbstractGameObject } from './00_AbstractGameObject';
 
@@ -13,8 +13,9 @@ export interface serializedEntity<T> {
 export abstract class AbstractGameEntity extends AbstractGameObject {
     // Should be used for all entities, buildings, trees, etc.
 
-    public dirty: boolean = true;
-    public server_dead: boolean = false;
+    public disabled: boolean = false;
+
+    public hitbox: { width: number; height: number } = { width: 0, height: 0 };
 
     serialize(): serializedEntity<{}> {
         return {
@@ -26,18 +27,8 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         };
     }
 
-    deserialize(serialized: any, dirty: boolean, smooth?: boolean): void {
+    deserialize(serialized: any, smooth?: boolean): void {
         this.updateMesh();
-        if (dirty) this.dirty = true;
-    }
-
-    public clean() {
-        this.dirty = false;
-    }
-
-    public server_kill() {
-        this.dirty = true;
-        this.server_dead = true;
     }
 
     public async updateMesh(): Promise<void> {
@@ -47,6 +38,8 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
 
             this.mesh.position.x = this.position.x * 100;
             this.mesh.position.y = -this.position.y * 100 + (this.getSize().y * Math.sin(CAMERA_ANGLE)) / 2;
+
+            this.mesh.isPickable = true;
         }
     }
 
@@ -54,5 +47,27 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
 
     static get type(): string {
         return 'unknown';
+    }
+
+    public async setVisibilityAttachBabylon(visible: boolean, babylonScene: Scene) {
+        super.setVisibility(visible);
+        if (visible && !this.babylonScene) this.attachBabylon(babylonScene);
+    }
+
+    public colidesWith(entity: AbstractGameEntity) {
+        return (
+            this.position.x - this.hitbox.width < entity.position.x + entity.hitbox.width &&
+            this.position.x + this.hitbox.width > entity.position.x - entity.hitbox.width &&
+            this.position.y - this.hitbox.height < entity.position.y + entity.hitbox.height &&
+            this.position.y + this.hitbox.height > entity.position.y - entity.hitbox.height
+        );
+    }
+
+    public mouseDown() {
+        console.log(this, 'down');
+    }
+
+    public mouseUp() {
+        console.log(this, 'up');
     }
 }

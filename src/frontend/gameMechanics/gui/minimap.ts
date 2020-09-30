@@ -1,6 +1,6 @@
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { GameScene } from '../../../shared/gameObjects/Scene';
-import { Player } from '../../../shared/gameObjects/Player';
+import { GameScene } from '../../../shared/Scene';
+import { Player } from '../../../shared/gameObjects/20_Player';
 import { shadeText } from '../utils/shadeText';
 
 const MINIMAP_DISTANCE = 32;

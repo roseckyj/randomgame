@@ -1,5 +1,5 @@
 import { Mesh, Vector2, Scene } from 'babylonjs';
-import { GameScene } from './Scene';
+import { GameScene } from '../Scene';
 
 export abstract class AbstractGameObject {
     protected babylonScene: Scene | null = null;
@@ -8,24 +8,20 @@ export abstract class AbstractGameObject {
 
     constructor(protected gameScene: GameScene) {}
 
-    attachBabylon(babylonScene: Scene): AbstractGameObject {
+    async attachBabylon(babylonScene: Scene): Promise<void> {
         this.babylonScene = babylonScene;
-
-        return this;
     }
 
-    detachBabylon(): AbstractGameObject {
+    async detachBabylon(): Promise<void> {
         if (this.babylonScene && this.mesh) {
             this.babylonScene.removeMesh(this.mesh, true);
             this.babylonScene = null;
         }
-
-        return this;
     }
 
     abstract serialize(): any;
 
-    abstract deserialize(serialized: any, dirty: boolean, smooth?: boolean): void;
+    abstract deserialize(serialized: any, smooth?: boolean): void;
 
     tick(deltaTime: number): void {}
 

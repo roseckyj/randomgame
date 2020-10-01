@@ -1,21 +1,24 @@
 import { ConnectedClient } from './ConnectedClient';
 import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
 import { GameScene } from '../../shared/Scene';
-import { serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
-import { messageEntities } from '../../shared/network/messageTypes';
-const express = require('express')();
-const http = require('http').Server(express);
+import express from "express";
+import { ServerGUI } from './ServerGUI';
 
 export class NetworkServer {
-    socketServer: SocketIO.Server = require('socket.io')(http);
-    connectedClients: ConnectedClient[] = [];
+    expressApp = express();
+    httpServer = require('http').Server(this.expressApp);
+    socketServer: SocketIO.Server = require('socket.io')(this.httpServer);
+    serverGUI: ServerGUI;
 
+    connectedClients: ConnectedClient[] = [];
     dirtyEntities: string[] = [];
 
     constructor(private port: number | string, private scene: GameScene, mapGenerator: AbstractMapGenerator) {
         this.socketServer.on('connection', (socket: SocketIO.Socket) => {
             this.connectedClients.push(new ConnectedClient(socket, scene, mapGenerator, (keys) => this.setDirty(keys)));
         });
+
+        this.serverGUI = new ServerGUI(this.expressApp, scene);
     }
 
     public close() {
@@ -23,7 +26,7 @@ export class NetworkServer {
     }
 
     public open() {
-        http.listen(this.port, () => {
+        this.httpServer.listen(this.port, () => {
             console.info('==========================================');
             console.info(`API is running at http://localhost:${this.port}`);
             console.info();

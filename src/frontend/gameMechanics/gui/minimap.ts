@@ -2,6 +2,7 @@ import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture
 import { GameScene } from '../../../shared/Scene';
 import { Player } from '../../../shared/gameObjects/20_Player';
 import { shadeText } from '../utils/shadeText';
+import { getEntityColor, getTerrainColor } from '../../../shared/colors';
 
 const MINIMAP_DISTANCE = 32;
 const MINIMAP_SCALE = 2;
@@ -83,28 +84,4 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
     );
 
     guiTexture.update();
-}
-
-function getTerrainColor(number: number): string {
-    switch (number) {
-        case 1: // Grass
-            return '#67943F';
-        case 2: // Water
-            return '#2EB0E5';
-        case 4: // Sand
-            return '#FDDC86';
-    }
-    return '#DDDDDD';
-}
-
-function getEntityColor(type: string): string {
-    switch (type) {
-        case 'tree':
-            return '#2A4323';
-        case 'player':
-            return '#000dff';
-        case 'stone':
-            return '#dddddd';
-    }
-    return '#DDDDDD';
 }

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html style="margin: 0; padding: 0">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Server dynmap</title>
+
+        <!-- Leaflet -->
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+            integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+            crossorigin=""
+        />
+        <script
+            src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""
+        ></script>
+    </head>
+    <body style="margin: 0; padding: 0">
+        <div id="mapid" style="width: 100vw; height: 100vh"></div>
+
+        <script>
+            const map = new L.Map('mapid', {
+                zoom: 3,
+                center: new L.LatLng(0, 0),
+                zoomAnimation: true,
+                attributionControl: false,
+                crs: L.CRS.Simple,
+                continuousWorld: true,
+                worldCopyJump: false,
+            });
+
+            const markerIcon = L.icon({
+                iconUrl: '/dynmap/static/marker.png',
+                iconSize: [16, 32],
+                iconAnchor: [8, 32],
+            });
+
+            let layers = [];
+            let markers = {};
+
+            function update() {
+                const layer = L.tileLayer('/dynmap/tile/{z}/{x}/{y}?{unique}', {
+                    maxNativeZoom: 5,
+                    minNativeZoom: 1,
+                    minZoom: -1,
+                    maxZoom: 7,
+                    tileSize: 160,
+                    unique: function () {
+                        return Math.random();
+                    },
+                });
+                layer.addTo(map);
+
+                layers.push(layer);
+                if (layers.length > 2) {
+                    map.removeLayer(layers.shift());
+                }
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        const players = JSON.parse(xhttp.responseText);
+                        players.forEach((player) => {
+                            const coords = map.unproject([(player.x + 8) * 10, (player.y + 8) * 10], 5);
+                            if (markers[player.id]) {
+                                markers[player.id].setLatLng(coords);
+                            } else {
+                                markers[player.id] = L.marker(coords, { icon: markerIcon });
+                                markers[player.id].addTo(map);
+                            }
+                        });
+                        Object.keys(markers)
+                            .filter((marker) => !players.map((player) => player.id).includes(marker))
+                            .forEach((marker) => map.removeLayer(markers[marker]));
+                    }
+                };
+                xhttp.open('GET', '/dynmap/players', true);
+                xhttp.send();
+            }
+
+            update();
+
+            setInterval(() => {
+                update();
+            }, 5000);
+        </script>
+    </body>
+</html>

@@ -2,6 +2,8 @@ import { Mesh, Scene, MeshBuilder, StandardMaterial, Texture, DynamicTexture, Ve
 import { AbstractGameObject } from './00_AbstractGameObject';
 import { GameScene } from '../Scene';
 import { getImage } from '../../frontend/gameMechanics/textures/textureEngine';
+import { AbstractGameEntity } from './01_AbstractGameEntity';
+import { getTerrainColor } from '../colors';
 
 export type tileType = number;
 
@@ -45,6 +47,15 @@ export class Chunk extends AbstractGameObject {
         return x.toString() + 'x' + y.toString();
     }
 
+    hasEntity(entity: AbstractGameEntity) {
+        return (
+            entity.position.x > this.position.x * 16 - 8 &&
+            entity.position.x < this.position.x * 16 + 8 &&
+            entity.position.y > this.position.y * 16 - 8 &&
+            entity.position.y < this.position.y * 16 + 8
+        );
+    }
+
     // ========== BABYLON ===========
 
     async attachBabylon(scene: Scene) {
@@ -83,20 +94,24 @@ export class Chunk extends AbstractGameObject {
         this.mesh.position.y = -this.position.y * 16 * 100;
 
         const ctx = this.texture.getContext();
+        this.drawTexture(ctx);
+        this.texture.update();
+    }
 
+    drawBasicTiling(ctx: CanvasRenderingContext2D, shiftX: number, shiftY: number, size: number) {
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
                 if (this.ground[x] && this.ground[x][y]) {
-                    ctx.fillStyle = Chunk.getTerrainColor(this.ground[x][y]);
+                    ctx.fillStyle = getTerrainColor(this.ground[x][y]);
 
-                    ctx.fillRect(x * 16, y * 16, 16, 16);
-                    // if ((x + y) % 2 === 0) {
-                    //     ctx.fillStyle = '#00000005';
-                    //     ctx.fillRect(x * 16, y * 16, 16, 16);
-                    // }
+                    ctx.fillRect(shiftX + x * size, shiftY + y * size, size, size);
                 }
             }
         }
+    }
+
+    drawTexture(ctx: CanvasRenderingContext2D) {
+        this.drawBasicTiling(ctx, 0, 0, 16);
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
@@ -124,8 +139,6 @@ export class Chunk extends AbstractGameObject {
                 }
             }
         }
-
-        this.texture.update();
     }
 
     drawTransition(ctx: CanvasRenderingContext2D, x: number, y: number, tileType: number[], filePrefix: string) {
@@ -181,17 +194,5 @@ export class Chunk extends AbstractGameObject {
 
         // Mesh detached by super
         return super.detachBabylon();
-    }
-
-    static getTerrainColor(number: number): string {
-        switch (number) {
-            case 1: // Grass
-                return '#67943F';
-            case 2: // Water
-                return '#2EB0E5';
-            case 4: // Sand
-                return '#FDDC86';
-        }
-        return '#DDDDDD';
     }
 }

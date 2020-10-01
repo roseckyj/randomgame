@@ -19,6 +19,7 @@
         "@types/socket.io": "^2.1.11",
         "@types/socket.io-client": "^1.4.33",
         "babylonjs": "^4.1.0",
+        "canvas": "^2.6.1",
         "cross-env": "^7.0.2",
         "express": "^4.17.1",
         "md5": "^2.3.0",

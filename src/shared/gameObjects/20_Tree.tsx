@@ -2,7 +2,6 @@ import { Mesh, Scene, MeshBuilder, Vector2 } from 'babylonjs';
 import { getSimpleMaterial } from '../../frontend/gameMechanics/textures/textureEngine';
 import { GameScene } from '../Scene';
 import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
-import { SimpleTexture } from '../../frontend/gameMechanics/textures/SimpleTexture';
 
 type treeTypes = 1 | 2 | 3 | 4;
 

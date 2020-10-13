@@ -126,6 +126,7 @@ export class ConnectedClient {
         const message: messageEntities = {
             updated: updated.map((value) => value.serialize()),
             removed: removed.map((value) => value.serialize()),
+            time: this.scene.timeStart,
         };
         this.socket.emit('entities', message);
     }
@@ -142,6 +143,7 @@ export class ConnectedClient {
         const message: messageEntities = {
             updated: entities.map((value) => value.serialize()),
             removed: [],
+            time: this.scene.timeStart,
         };
         this.socket.emit('entities', message);
 
@@ -177,6 +179,7 @@ export class ConnectedClient {
                 const message: messageEntities = {
                     updated: entities.map((value) => value.serialize()),
                     removed: [],
+                    time: this.scene.timeStart,
                 };
                 this.socket.emit('entities', message);
             });

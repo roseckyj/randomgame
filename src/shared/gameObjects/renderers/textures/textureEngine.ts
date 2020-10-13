@@ -73,10 +73,16 @@ export function getSimpleMaterial(textureAtlas: string, scene: Scene) {
     return material;
 }
 
-export function createMaterial(texture: Texture, scene: Scene) {
+export function createMaterial(texture: Texture, scene: Scene, noAlpha?: true) {
     const material = new StandardMaterial('mat', scene);
-    material.emissiveTexture = texture;
-    material.opacityTexture = texture;
+    // Emissive:
+    //material.emissiveTexture = texture;
+    //if (!noAlpha) material.opacityTexture = texture;
+
+    // Diffusive:
+    material.diffuseTexture = texture;
+    if (!noAlpha) material.opacityTexture = texture;
+    material.specularColor = new BABYLON.Color3(0, 0, 0);
 
     return material;
 }

@@ -5,6 +5,7 @@ import { AbstractGameEntity } from './gameObjects/20_AbstractGameEntity';
 export class GameScene {
     entities = new IndexedList<AbstractGameEntity>();
     chunks = new IndexedList<Chunk>();
+    timeStart: number = new Date().getTime();
 
     tickAll(deltaTime: number) {
         this.entities.forEach((value) => value.tick(deltaTime));
@@ -47,5 +48,17 @@ export class GameScene {
 
     private distance(a: AbstractGameEntity, b: AbstractGameEntity) {
         return Math.sqrt(Math.pow(a.position.x - b.position.x, 2) + Math.pow(a.position.y - b.position.y, 2));
+    }
+
+    getTime() {
+        const REAL_TO_INGAME_TIME = 10 * 60;
+        let time = (Math.abs(new Date().getTime() - this.timeStart) / 1000) * REAL_TO_INGAME_TIME + 12 * 60 * 60;
+
+        return {
+            day: time / (60 * 60 * 24),
+            hour: (time / (60 * 60)) % 24,
+            min: (time / 60) % 60,
+            sec: time % 60,
+        };
     }
 }

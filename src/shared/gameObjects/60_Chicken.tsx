@@ -3,7 +3,6 @@ import { GameScene } from '../Scene';
 import { AbstractGameEntity, Platform, serializedEntity } from './20_AbstractGameEntity';
 import { ControllerManager } from './controllers/ControllerManager';
 import { ChickenAIController } from './controllers/controllers/ai/ChickenAIController';
-import { ImmediateDeserializeController } from './controllers/controllers/deserializers/ImmediateDeserializeController';
 import { SmoothDeserializeController } from './controllers/controllers/deserializers/SmoothDeserializeController';
 import { SimpleRenderer } from './renderers/10_SimpleRenderer';
 

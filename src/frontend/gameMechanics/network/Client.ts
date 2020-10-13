@@ -79,6 +79,8 @@ export class NetworkClient {
                         entity.id !== this.userId &&
                         this.scene.entities.updateOrCreate(entity.id, entity, () => this.createEntity(entity)!),
                 );
+
+            this.scene.timeStart = data.time;
             this.callbacks.updated({});
         });
 

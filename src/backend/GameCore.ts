@@ -3,6 +3,9 @@ import { SimpleMapGenerator } from './mapGenerator/SimpleMapGenerator';
 import { AbstractMapGenerator } from './mapGenerator/AbstractMapGenerator';
 import { GameScene } from '../shared/Scene';
 
+const TICK_TIME = 10;
+const UPDATE_TIME = 100;
+
 export class GameCore {
     gameScene: GameScene;
     mapGenerator: AbstractMapGenerator;
@@ -22,11 +25,11 @@ export class GameCore {
         console.log('Map seed: ', this.mapGenerator.seed);
 
         this.tickTimer = setInterval(() => {
-            this.gameScene.tickAll(10);
-        }, 10);
+            this.gameScene.tickAll(TICK_TIME);
+        }, TICK_TIME);
 
         this.updateTimer = setInterval(() => {
             this.networkServer.sendUpdates();
-        }, 100);
+        }, UPDATE_TIME);
     }
 }

@@ -1,6 +1,6 @@
-import { DynamicTexture, Mesh, MeshBuilder, StandardMaterial, Texture } from 'babylonjs';
+import { DynamicTexture, Mesh, MeshBuilder, Texture } from 'babylonjs';
 import { Scene } from 'babylonjs/scene';
-import { getImage } from './textures/textureEngine';
+import { createMaterial, getImage } from './textures/textureEngine';
 import { getTerrainColor } from '../../colors';
 import { Chunk } from '../10_Chunk';
 import { AbstractRenderer } from './00_AbstractRenderer';
@@ -16,6 +16,7 @@ export class ChunkRenderer extends AbstractRenderer {
             { width: 1600, height: 1600, sideOrientation: Mesh.FRONTSIDE },
             this.babylonScene,
         );
+        //this.mesh.receiveShadows = true;
 
         const texture = new DynamicTexture(
             'chunkTexture ' + object.id,
@@ -26,8 +27,7 @@ export class ChunkRenderer extends AbstractRenderer {
         );
 
         this.texture = texture;
-        const material = new StandardMaterial('mat ' + object.id, this.babylonScene);
-        material.emissiveTexture = texture;
+        const material = createMaterial(texture, this.babylonScene, true);
         this.mesh.material = material;
 
         this.update();

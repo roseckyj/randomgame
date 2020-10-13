@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 
-import babylonjs, { Vector3, UniversalCamera, StandardMaterial, MeshBuilder } from 'babylonjs';
+import babylonjs, { Vector3, UniversalCamera, StandardMaterial, MeshBuilder, DirectionalLight } from 'babylonjs';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
@@ -186,6 +186,18 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             },
             this.babylonScene,
         );
+
+        const nightLight = new DirectionalLight('nightLight', new Vector3(0, 1, 2), this.babylonScene);
+        nightLight.diffuse = new BABYLON.Color3(0.5, 0.5, 1);
+        const nightLightIntensity = 0.5;
+
+        const dayLight = new DirectionalLight('dayLight', new Vector3(0, 1, 2), this.babylonScene);
+        dayLight.diffuse = new BABYLON.Color3(1, 1, 0.8);
+        const dayLightIntensity = 1.5;
+
+        //const shadowGenerator = new ShadowGenerator(1024, light);
+        //shadowGenerator.useExponentialShadowMap = true;
+
         const skyboxMaterial = new StandardMaterial('skyBox', this.babylonScene);
         skyboxMaterial.backFaceCulling = false;
         skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
@@ -236,14 +248,41 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
 
         scene.getEngine().runRenderLoop(() => {
             this.tick(scene.getEngine().getDeltaTime());
+            //this.gameScene.time += scene.getEngine().getDeltaTime();
 
             (async () => {
+                /*
+                this.gameScene.entities.forEach((entity) => {
+                    entity.renderer && shadowGenerator.addShadowCaster(entity.renderer.mesh);
+                });
+                */
                 if (this.me) {
                     camera.position = new Vector3(
                         this.me.position.x * 100,
                         -this.me.position.y * 100 - CAMERA_DISTANCE * this.zoom * Math.tan(CAMERA_ANGLE),
                         -CAMERA_DISTANCE * this.zoom,
                     );
+
+                    const time = this.gameScene.getTime();
+                    if (time.hour > 9 && time.hour < 18) {
+                        dayLight.intensity = dayLightIntensity;
+                        nightLight.intensity = 0;
+                    }
+                    if (time.hour > 21 || time.hour < 6) {
+                        dayLight.intensity = 0;
+                        nightLight.intensity = nightLightIntensity;
+                    }
+                    if (time.hour > 6 && time.hour < 9) {
+                        const change = (time.hour - 6) / 3;
+                        dayLight.intensity = change * dayLightIntensity;
+                        nightLight.intensity = (1 - change) * nightLightIntensity;
+                    }
+                    if (time.hour > 18 && time.hour < 21) {
+                        const change = (time.hour - 18) / 3;
+                        dayLight.intensity = (1 - change) * dayLightIntensity;
+                        nightLight.intensity = change * nightLightIntensity;
+                    }
+                    console.log(dayLight.intensity, nightLight.intensity);
 
                     //pipeline.setFocusDistance((CAMERA_DISTANCE * this.zoom) / Math.cos(CAMERA_ANGLE));
 

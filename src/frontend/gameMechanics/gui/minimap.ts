@@ -83,5 +83,31 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
         y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 10,
     );
 
+    const time = gameScene.getTime();
+
+    gui.textAlign = 'center';
+    shadeText(gui, ':', x0, y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30);
+    gui.textAlign = 'right';
+    shadeText(
+        gui,
+        Math.floor(time.hour).toString(),
+        x0 - 10,
+        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30,
+    );
+    gui.textAlign = 'left';
+    shadeText(
+        gui,
+        Math.floor(time.min).toString().padStart(2, '0'),
+        x0 + 10,
+        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30,
+    );
+    gui.textAlign = 'center';
+    shadeText(
+        gui,
+        '(den ' + Math.floor(time.day).toString() + '.)',
+        x0,
+        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 50,
+    );
+
     guiTexture.update();
 }

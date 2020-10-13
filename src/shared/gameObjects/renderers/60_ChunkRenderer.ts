@@ -1,6 +1,6 @@
 import { DynamicTexture, Mesh, MeshBuilder, StandardMaterial, Texture } from 'babylonjs';
 import { Scene } from 'babylonjs/scene';
-import { getImage } from '../../../frontend/gameMechanics/textures/textureEngine';
+import { getImage } from './textures/textureEngine';
 import { getTerrainColor } from '../../colors';
 import { Chunk } from '../10_Chunk';
 import { AbstractRenderer } from './00_AbstractRenderer';

@@ -57,6 +57,11 @@ export const textures: texturePack = {
             },
         },
     },
+    chicken: {
+        filename: 'chicken.png',
+        width: 1,
+        animations: {},
+    },
     rock_big: {
         filename: 'rock_big.png',
         width: 1,

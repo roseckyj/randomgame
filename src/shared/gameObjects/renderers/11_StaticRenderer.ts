@@ -1,6 +1,6 @@
 import { Mesh, MeshBuilder } from 'babylonjs';
 import { Scene } from 'babylonjs/scene';
-import { getSimpleMaterial } from '../../../frontend/gameMechanics/textures/textureEngine';
+import { getSimpleMaterial } from './textures/textureEngine';
 import { AbstractGameEntity } from '../20_AbstractGameEntity';
 import { AbstractEntityRenderer } from './01_AbstractEntityRenderer';
 

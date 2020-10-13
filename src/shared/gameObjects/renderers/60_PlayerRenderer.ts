@@ -1,7 +1,7 @@
 import { DynamicTexture, Mesh, MeshBuilder, Texture, Vector3 } from 'babylonjs';
 import { Scene } from 'babylonjs/scene';
-import { AnimatedTexture } from '../../../frontend/gameMechanics/textures/AnimatedTexture';
-import { createMaterial } from '../../../frontend/gameMechanics/textures/textureEngine';
+import { AnimatedTexture } from './textures/AnimatedTexture';
+import { createMaterial } from './textures/textureEngine';
 import { Player } from '../60_Player';
 import { AbstractEntityRenderer } from './01_AbstractEntityRenderer';
 

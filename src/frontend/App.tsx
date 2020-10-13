@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameCore } from './gameMechanics/GameCore';
-import { loadTextures } from './gameMechanics/textures/textureEngine';
+import { loadTextures } from '../shared/gameObjects/renderers/textures/textureEngine';
 
 interface IAppProps {}
 
@@ -25,7 +25,7 @@ class App extends React.Component<IAppProps, IAppState> {
 
     constructor(props: IAppProps) {
         super(props);
-        
+
         if (window.location.host.includes('localhost')) {
             this.apiUrl = 'http://localhost:80/';
         }

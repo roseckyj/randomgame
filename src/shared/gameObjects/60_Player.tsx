@@ -53,7 +53,7 @@ export class Player extends AbstractGameEntity {
         this.renderer = new PlayerRenderer(this, scene);
     }
 
-    registerControllers(platform: Platform, me?: boolean) {
+    attachControllers(platform: Platform, me?: boolean) {
         if (platform === Platform.Server) {
             this.controllerManager.attach(new ImmediateDeserializeController(this));
         }

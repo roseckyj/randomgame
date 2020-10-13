@@ -56,7 +56,7 @@ export class ConnectedClient {
                 console.log('Registered new user ' + data.name);
                 this.player = new Player(this.scene, uuid());
                 this.player.name = data.name;
-                this.player.registerControllers(Platform.Server);
+                this.player.attachControllers(Platform.Server);
                 this.scene.entities.add(this.player.id, this.player);
 
                 users[data.name] = {

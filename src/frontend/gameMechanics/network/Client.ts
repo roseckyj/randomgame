@@ -115,19 +115,19 @@ export class NetworkClient {
             case 'player': {
                 const e = new Player(this.scene, entity.id);
                 e.deserializeImmediatelly(entity);
-                e.registerControllers(Platform.Client);
+                e.attachControllers(Platform.Client);
                 return e;
             }
             case 'tree': {
                 const e = new Tree(this.scene, entity.id);
                 e.deserializeImmediatelly(entity);
-                e.registerControllers(Platform.Client);
+                e.attachControllers(Platform.Client);
                 return e;
             }
             case 'stone': {
                 const e = new Stone(this.scene, entity.id);
                 e.deserializeImmediatelly(entity);
-                e.registerControllers(Platform.Client);
+                e.attachControllers(Platform.Client);
                 return e;
             }
         }

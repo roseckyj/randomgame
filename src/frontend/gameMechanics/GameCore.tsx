@@ -104,7 +104,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         });
         this.me = new Player(this.gameScene, player.id);
         this.me.attachRenderer(this.babylonScene!);
-        this.me.registerControllers(Platform.Client, true);
+        this.me.attachControllers(Platform.Client, true);
         this.me.controllerManager.invoke('bindKeys', CONTROLS_WASD);
         this.me.deserializeImmediatelly(player);
         this.gameScene.entities.add(player.id, this.me);

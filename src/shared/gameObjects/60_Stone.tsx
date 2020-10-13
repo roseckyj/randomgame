@@ -46,7 +46,7 @@ export class Stone extends AbstractGameEntity {
         this.renderer = new StaticRenderer(this, scene, () => (this.size === 1 ? 'rock_small' : 'rock_big'));
     }
 
-    registerControllers(platform: Platform) {
+    attachControllers(platform: Platform) {
         if (platform === Platform.Server) {
             this.controllerManager.attach(new ImmediateDeserializeController(this));
         }

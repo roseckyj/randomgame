@@ -62,7 +62,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                     x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                     y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                 );
-                tree.registerControllers(Platform.Server);
+                tree.attachControllers(Platform.Server);
                 if (Math.random() > 0.5) {
                     tree.size = 4;
                 } else if (Math.random() > 0.5) {
@@ -86,7 +86,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                 y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
             );
             stone.size = Math.random() > 0.7 ? 1 : 2;
-            stone.registerControllers(Platform.Server);
+            stone.attachControllers(Platform.Server);
             this.scene.entities.add(stone.id, stone);
             return 1;
         }

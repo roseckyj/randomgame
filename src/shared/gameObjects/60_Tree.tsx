@@ -48,7 +48,7 @@ export class Tree extends AbstractGameEntity {
         this.renderer = new StaticRenderer(this, scene, () => this.getMaterial());
     }
 
-    registerControllers(platform: Platform) {
+    attachControllers(platform: Platform) {
         if (platform === Platform.Server) {
             this.controllerManager.attach(new ImmediateDeserializeController(this));
         }

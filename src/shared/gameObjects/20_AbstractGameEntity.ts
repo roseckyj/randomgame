@@ -57,7 +57,7 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         this.update();
     }
 
-    abstract registerControllers(platform: Platform): void;
+    abstract attachControllers(platform: Platform): void;
 
     abstract getSize(): Vector2;
 

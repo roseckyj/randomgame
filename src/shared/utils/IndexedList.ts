@@ -13,7 +13,7 @@ export class IndexedList<T extends AbstractGameObject> {
 
     remove(key: string) {
         if (!this.values[key]) return;
-        this.values[key].detachBabylon();
+        this.values[key].detachRenderer();
         delete this.values[key];
     }
 

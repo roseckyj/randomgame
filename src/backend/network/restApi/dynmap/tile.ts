@@ -1,9 +1,10 @@
 import { createCanvas } from 'canvas';
 import { Request, Response } from 'express';
-import { Player } from '../../../../shared/gameObjects/20_Player';
+import { Player } from '../../../../shared/gameObjects/60_Player';
 import { getEntityColor } from '../../../../shared/colors';
 import { Chunk } from '../../../../shared/gameObjects/10_Chunk';
 import { GameScene } from '../../../../shared/Scene';
+import { ChunkRenderer } from '../../../../shared/gameObjects/renderers/60_ChunkRenderer';
 
 function createTile(scene: GameScene, ctx: CanvasRenderingContext2D, x: number, y: number, z: number) {
     const ENTITY_SCALE = 0.5;
@@ -18,7 +19,7 @@ function createTile(scene: GameScene, ctx: CanvasRenderingContext2D, x: number, 
             const chunk = scene.chunks.get(Chunk.getId(chunkX, chunkY));
 
             if (chunk) {
-                chunk.drawBasicTiling(ctx, tX * z * 16, tY * z * 16, z);
+                ChunkRenderer.drawBasicTiling(chunk, ctx, tX * z * 16, tY * z * 16, z);
                 scene.entities
                     .filter((entity) => chunk.hasEntity(entity) && !(entity instanceof Player))
                     .forEach((entity) => {

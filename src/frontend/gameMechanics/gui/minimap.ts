@@ -1,6 +1,6 @@
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { GameScene } from '../../../shared/Scene';
-import { Player } from '../../../shared/gameObjects/20_Player';
+import { Player } from '../../../shared/gameObjects/60_Player';
 import { shadeText } from '../utils/shadeText';
 import { getEntityColor, getTerrainColor } from '../../../shared/colors';
 

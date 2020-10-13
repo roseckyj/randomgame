@@ -1,6 +1,6 @@
 import { Scene, Vector2 } from 'babylonjs';
-import { CAMERA_ANGLE } from '../constants';
 import { AbstractGameObject } from './00_AbstractGameObject';
+import { AbstractController } from './controllers/00_AbstractController';
 
 export interface serializedEntity<T> {
     id: string;
@@ -13,8 +13,8 @@ export interface serializedEntity<T> {
 export abstract class AbstractGameEntity extends AbstractGameObject {
     // Should be used for all entities, buildings, trees, etc.
 
+    public controller: AbstractController | null = null;
     public disabled: boolean = false;
-
     public hitbox: { width: number; height: number } = { width: 0, height: 0 };
 
     serialize(): serializedEntity<{}> {
@@ -28,19 +28,7 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
     }
 
     deserialize(serialized: any, smooth?: boolean): void {
-        this.updateMesh();
-    }
-
-    public async updateMesh(): Promise<void> {
-        if (this.mesh) {
-            this.mesh.position.z = -(this.getSize().y * Math.cos(CAMERA_ANGLE)) / 2;
-            this.mesh.rotation.x = -CAMERA_ANGLE;
-
-            this.mesh.position.x = this.position.x * 100;
-            this.mesh.position.y = -this.position.y * 100 + (this.getSize().y * Math.sin(CAMERA_ANGLE)) / 2;
-
-            this.mesh.isPickable = true;
-        }
+        this.update();
     }
 
     abstract getSize(): Vector2;
@@ -49,9 +37,9 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         return 'unknown';
     }
 
-    public async setVisibilityAttachBabylon(visible: boolean, babylonScene: Scene) {
+    public async setVisibilityAttachRenderer(visible: boolean, babylonScene: Scene) {
         super.setVisibility(visible);
-        if (visible && !this.babylonScene) this.attachBabylon(babylonScene);
+        if (visible && !this.renderer) this.attachRenderer(babylonScene);
     }
 
     public colidesWith(entity: AbstractGameEntity) {
@@ -63,11 +51,9 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         );
     }
 
-    public mouseDown() {
-        console.log(this, 'down');
-    }
-
-    public mouseUp() {
-        console.log(this, 'up');
+    tick(deltaTime: number): void {
+        if (this.controller) {
+            this.controller.tick(deltaTime);
+        }
     }
 }

@@ -1,12 +1,12 @@
 import io from 'socket.io-client';
-import { Player, serializedPlayer } from '../../../shared/gameObjects/20_Player';
+import { Player, serializedPlayer } from '../../../shared/gameObjects/60_Player';
 import { GameScene } from '../../../shared/Scene';
 import babylonjs from 'babylonjs';
 import { serializedChunk, Chunk } from '../../../shared/gameObjects/10_Chunk';
 import { messageEntities, messageError, messageLogin } from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';
-import { Tree } from '../../../shared/gameObjects/20_Tree';
-import { Stone } from '../../../shared/gameObjects/20_Stone';
+import { Tree } from '../../../shared/gameObjects/60_Tree';
+import { Stone } from '../../../shared/gameObjects/60_Stone';
 import md5 from 'md5';
 
 type callback = (data: any) => void;
@@ -86,7 +86,7 @@ export class NetworkClient {
 
             this.scene.chunks.updateOrCreate(id, data, () => {
                 const chunk = new Chunk(this.scene, data.x, data.y);
-                chunk.attachBabylon(this.getBabylonScene());
+                chunk.attachRenderer(this.getBabylonScene());
                 return chunk;
             });
 

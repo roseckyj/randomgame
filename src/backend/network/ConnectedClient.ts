@@ -1,6 +1,6 @@
 import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
 import { uuid } from 'uuidv4';
-import { Player, serializedPlayer } from '../../shared/gameObjects/20_Player';
+import { Player, serializedPlayer } from '../../shared/gameObjects/60_Player';
 import { GameScene } from '../../shared/Scene';
 import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
 import { messageEntities, messageError, messageLogin, messageMapRequest } from '../../shared/network/messageTypes';

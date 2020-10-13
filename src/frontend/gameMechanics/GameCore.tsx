@@ -4,7 +4,7 @@ import babylonjs, { Vector3, UniversalCamera, StandardMaterial, MeshBuilder } fr
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { Player, serializedPlayer } from '../../shared/gameObjects/20_Player';
+import { Player, serializedPlayer } from '../../shared/gameObjects/60_Player';
 import { Chunk } from '../../shared/gameObjects/10_Chunk';
 import { GameScene } from '../../shared/Scene';
 import { CONTROLS_WASD } from '../keyBindings';
@@ -70,15 +70,11 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         });
 
         document.addEventListener('keydown', (event) => {
-            if (this.me) {
-                this.me.keyDown(event.keyCode);
-            }
+            this.gameScene.entities.forEach((entity) => entity.controller && entity.controller.keyDown(event.keyCode));
         });
 
         document.addEventListener('keyup', (event) => {
-            if (this.me) {
-                this.me.keyUp(event.keyCode);
-            }
+            this.gameScene.entities.forEach((entity) => entity.controller && entity.controller.keyUp(event.keyCode));
         });
 
         document.addEventListener('wheel', (event) => {
@@ -107,8 +103,8 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             loggedIn: true,
         });
         this.me = new Player(this.gameScene, player.id);
-        this.me.attachBabylon(this.babylonScene!);
-        this.me.bindKeys(CONTROLS_WASD);
+        this.me.attachRenderer(this.babylonScene!);
+        this.me.controller.bindKeys(CONTROLS_WASD);
         this.me.deserialize(player, false);
         this.gameScene.entities.add(player.id, this.me);
 
@@ -199,19 +195,19 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
 
         this.guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('GUI', true, scene);
 
-        scene.onPointerDown = (_, pickResult) => {
+        scene.onPointerDown = (event, pickResult) => {
             if (pickResult.hit && pickResult.pickedMesh && !pickResult.pickedMesh.name.startsWith('chunk')) {
                 this.mouseEntity = this.gameScene.entities.get(pickResult.pickedMesh.name.split(' ')[1]);
                 if (this.mouseEntity) {
-                    this.mouseEntity.mouseDown();
+                    this.mouseEntity.controller && this.mouseEntity.controller.mouseDown(event.button);
                 }
             } else {
                 this.mouseEntity = null;
             }
         };
-        scene.onPointerUp = () => {
+        scene.onPointerUp = (event) => {
             if (this.mouseEntity) {
-                this.mouseEntity.mouseUp();
+                this.mouseEntity.controller && this.mouseEntity.controller.mouseUp(event.button);
             }
         };
 
@@ -288,7 +284,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                         this.gameScene.entities.remove(entity.id);
                     }
                 } else {
-                    entity.setVisibilityAttachBabylon(true, this.babylonScene!);
+                    entity.setVisibilityAttachRenderer(true, this.babylonScene!);
                 }
             });
         }
@@ -306,7 +302,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                         this.networkClient.requestChunk(chunkX, chunkY);
 
                         const chunk = new Chunk(this.gameScene, chunkX, chunkY);
-                        chunk.attachBabylon(this.babylonScene!);
+                        chunk.attachRenderer(this.babylonScene!);
 
                         this.gameScene.chunks.add(chunkId, chunk);
                     }

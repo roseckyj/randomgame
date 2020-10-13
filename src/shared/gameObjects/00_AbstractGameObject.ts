@@ -1,38 +1,43 @@
-import { Mesh, Vector2, Scene } from 'babylonjs';
+import { Vector2, Scene } from 'babylonjs';
 import { GameScene } from '../Scene';
+import { AbstractRenderer } from './renderers/00_AbstractRenderer';
 
 export abstract class AbstractGameObject {
-    protected babylonScene: Scene | null = null;
-    protected mesh: Mesh | null = null;
+    protected renderer: AbstractRenderer | null = null;
     public position: Vector2 = Vector2.Zero();
+    protected visibility: boolean = true;
 
-    constructor(protected gameScene: GameScene) {}
-
-    async attachBabylon(babylonScene: Scene): Promise<void> {
-        this.babylonScene = babylonScene;
-    }
-
-    async detachBabylon(): Promise<void> {
-        if (this.babylonScene && this.mesh) {
-            this.babylonScene.removeMesh(this.mesh, true);
-            this.babylonScene = null;
-        }
-    }
+    constructor(public gameScene: GameScene) {}
 
     abstract serialize(): any;
 
     abstract deserialize(serialized: any, smooth?: boolean): void;
 
+    async attachRenderer(babylonScene: Scene) {
+        if (this.renderer && this.renderer.attached) {
+            this.renderer.detach();
+        }
+    }
+
+    async detachRenderer(): Promise<void> {
+        if (this.renderer) this.renderer.detach();
+    }
+
+    protected update() {
+        if (this.renderer) {
+            this.renderer.update();
+        }
+    }
+
     tick(deltaTime: number): void {}
 
-    abstract async updateMesh(): Promise<void>;
-
     setVisibility(visible: boolean) {
-        if (this.mesh) this.mesh.setEnabled(visible);
+        this.visibility = visible;
+        if (this.renderer) this.renderer.update();
     }
 
     getVisibility() {
-        return !!this.mesh && this.mesh.isEnabled();
+        return this.visibility;
     }
 
     abstract get id(): string;

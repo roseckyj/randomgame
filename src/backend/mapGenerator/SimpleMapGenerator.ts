@@ -3,8 +3,8 @@ import { AbstractMapGenerator } from './AbstractMapGenerator';
 import { uuid } from 'uuidv4';
 import { Vector2 } from 'babylonjs';
 import { Chunk } from '../../shared/gameObjects/10_Chunk';
-import { Tree } from '../../shared/gameObjects/20_Tree';
-import { Stone } from '../../shared/gameObjects/20_Stone';
+import { Tree } from '../../shared/gameObjects/60_Tree';
+import { Stone } from '../../shared/gameObjects/60_Stone';
 
 export class SimpleMapGenerator extends AbstractMapGenerator {
     simplex = new SimplexNoise(this.seed.toString());

@@ -1,5 +1,5 @@
 import express from 'express';
-import { Player } from '../../../shared/gameObjects/20_Player';
+import { Player } from '../../../shared/gameObjects/60_Player';
 import { GameScene } from '../../../shared/Scene';
 
 export function setupHomepage(expressApp: express.Application, scene: GameScene) {

@@ -1,4 +1,4 @@
-import { AbstractController } from '../00_AbstractController';
+import { AbstractController } from '../AbstractController';
 
 export abstract class AbstractInputController extends AbstractController {
     protected keysPressed: number[] = [];

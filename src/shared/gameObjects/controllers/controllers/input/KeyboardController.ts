@@ -1,5 +1,5 @@
 import { AbstractGameEntity } from '../../../20_AbstractGameEntity';
-import { AbstractInputController } from './00_AbstractInputController';
+import { AbstractInputController } from './AbstractInputController';
 
 export interface keyBindings {
     up: number;

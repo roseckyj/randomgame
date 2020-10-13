@@ -1,5 +1,5 @@
 import { AbstractGameEntity, serializedEntity } from '../../../20_AbstractGameEntity';
-import { AbstractController } from '../00_AbstractController';
+import { AbstractController } from '../AbstractController';
 
 const SMOOTH_TIME = 110;
 

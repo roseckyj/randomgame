@@ -1,4 +1,4 @@
-import { AbstractController } from './controllers/00_AbstractController';
+import { AbstractController } from './controllers/AbstractController';
 
 export class ControllerManager {
     constructor(private controllers: AbstractController[] = []) {}

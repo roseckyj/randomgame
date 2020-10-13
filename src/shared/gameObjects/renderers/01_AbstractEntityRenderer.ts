@@ -1,11 +1,11 @@
-import { Scene } from "babylonjs/scene";
-import { CAMERA_ANGLE } from "../../constants";
-import { AbstractGameEntity } from "../01_AbstractGameEntity";
-import { AbstractRenderer } from "./00_AbstractRenderer";
+import { Scene } from 'babylonjs/scene';
+import { CAMERA_ANGLE } from '../../constants';
+import { AbstractGameEntity } from '../20_AbstractGameEntity';
+import { AbstractRenderer } from './00_AbstractRenderer';
 
 export abstract class AbstractEntityRenderer extends AbstractRenderer {
     constructor(protected object: AbstractGameEntity, protected babylonScene: Scene) {
-        super(object, babylonScene)
+        super(object, babylonScene);
     }
 
     async update() {
@@ -14,7 +14,8 @@ export abstract class AbstractEntityRenderer extends AbstractRenderer {
             this.mesh.rotation.x = -CAMERA_ANGLE;
 
             this.mesh.position.x = this.object.position.x * 100;
-            this.mesh.position.y = -this.object.position.y * 100 + (this.object.getSize().y * Math.sin(CAMERA_ANGLE)) / 2;
+            this.mesh.position.y =
+                -this.object.position.y * 100 + (this.object.getSize().y * Math.sin(CAMERA_ANGLE)) / 2;
 
             this.mesh.isPickable = true;
         }

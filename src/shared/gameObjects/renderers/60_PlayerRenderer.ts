@@ -63,8 +63,8 @@ export class PlayerRenderer extends AbstractEntityRenderer {
 
         const WALKING_THRESHOLD = 0.01;
         if (
-            Math.abs(this.object.velocityX) > WALKING_THRESHOLD ||
-            Math.abs(this.object.velocityY) > WALKING_THRESHOLD
+            Math.abs(this.object.velocity.x) > WALKING_THRESHOLD ||
+            Math.abs(this.object.velocity.x) > WALKING_THRESHOLD
         ) {
             this.texture.queueOnce('walking');
         } else {

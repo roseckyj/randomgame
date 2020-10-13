@@ -1,6 +1,6 @@
 import { Chunk } from './gameObjects/10_Chunk';
 import { IndexedList } from './utils/IndexedList';
-import { AbstractGameEntity } from './gameObjects/01_AbstractGameEntity';
+import { AbstractGameEntity } from './gameObjects/20_AbstractGameEntity';
 
 export class GameScene {
     entities = new IndexedList<AbstractGameEntity>();

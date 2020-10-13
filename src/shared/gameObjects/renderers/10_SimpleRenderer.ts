@@ -1,8 +1,8 @@
-import { Mesh, MeshBuilder } from "babylonjs";
-import { Scene } from "babylonjs/scene";
-import { getSimpleMaterial } from "../../../frontend/gameMechanics/textures/textureEngine";
-import { AbstractGameEntity } from "../01_AbstractGameEntity";
-import { AbstractEntityRenderer } from "./01_AbstractEntityRenderer";
+import { Mesh, MeshBuilder } from 'babylonjs';
+import { Scene } from 'babylonjs/scene';
+import { getSimpleMaterial } from '../../../frontend/gameMechanics/textures/textureEngine';
+import { AbstractGameEntity } from '../20_AbstractGameEntity';
+import { AbstractEntityRenderer } from './01_AbstractEntityRenderer';
 
 /**
  * Renders entity with single static material.

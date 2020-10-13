@@ -1,11 +1,14 @@
 import { Scene, Vector2 } from 'babylonjs';
+import { GameScene } from '../Scene';
 import { AbstractGameObject } from './00_AbstractGameObject';
-import { AbstractController } from './controllers/00_AbstractController';
+import { ControllerManager } from './controllers/ControllerManager';
 
 export interface serializedEntity<T> {
     id: string;
     x: number;
     y: number;
+    velocityX: number;
+    velocityY: number;
     type: string;
     data: T;
 }
@@ -13,21 +16,39 @@ export interface serializedEntity<T> {
 export abstract class AbstractGameEntity extends AbstractGameObject {
     // Should be used for all entities, buildings, trees, etc.
 
-    public controller: AbstractController | null = null;
     public disabled: boolean = false;
     public hitbox: { width: number; height: number } = { width: 0, height: 0 };
+    public velocity: Vector2 = Vector2.Zero();
+
+    public controllerManager: ControllerManager;
+
+    constructor(public gameScene: GameScene, public id: string) {
+        super(gameScene);
+    }
 
     serialize(): serializedEntity<{}> {
         return {
             id: this.id,
             x: this.position.x,
             y: this.position.y,
+            velocityX: this.velocity.x,
+            velocityY: this.velocity.y,
             type: AbstractGameEntity.type,
             data: {},
         };
     }
 
-    deserialize(serialized: any, smooth?: boolean): void {
+    deserializeImmediatelly(serialized: any): void {
+        this.position.x = serialized.x;
+        this.position.y = serialized.y;
+        this.velocity.x = serialized.velocityX;
+        this.velocity.y = serialized.velocityY;
+        this.deserialize(serialized);
+        this.update();
+    }
+
+    deserialize(serialized: any): void {
+        this.controllerManager.invoke('deserialize', serialized);
         this.update();
     }
 
@@ -52,8 +73,6 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
     }
 
     tick(deltaTime: number): void {
-        if (this.controller) {
-            this.controller.tick(deltaTime);
-        }
+        this.controllerManager.invoke('tick', deltaTime);
     }
 }

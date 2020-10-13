@@ -1,6 +1,7 @@
 import { Scene, Vector2 } from 'babylonjs';
 import { GameScene } from '../Scene';
-import { AbstractGameEntity, serializedEntity } from './01_AbstractGameEntity';
+import { AbstractGameEntity, serializedEntity } from './20_AbstractGameEntity';
+import { ControllerManager } from './controllers/ControllerManager';
 import { StaticRenderer } from './renderers/11_StaticRenderer';
 
 type treeTypes = 1 | 2 | 3 | 4;
@@ -15,7 +16,9 @@ export class Tree extends AbstractGameEntity {
     public size: treeTypes;
 
     constructor(gameScene: GameScene, public id: string) {
-        super(gameScene);
+        super(gameScene, id);
+
+        this.controllerManager = new ControllerManager();
     }
 
     serialize(): serializedEntity<serializedTree> {
@@ -30,8 +33,6 @@ export class Tree extends AbstractGameEntity {
     deserialize(serialized: serializedEntity<serializedTree>): void {
         if (serialized.type !== Tree.type) return;
 
-        this.position.x = serialized.x;
-        this.position.y = serialized.y;
         this.size = serialized.data.size;
         super.deserialize(serialized);
     }

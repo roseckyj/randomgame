@@ -4,10 +4,12 @@ import { GameScene } from '../../../shared/Scene';
 import babylonjs from 'babylonjs';
 import { serializedChunk, Chunk } from '../../../shared/gameObjects/10_Chunk';
 import { messageEntities, messageError, messageLogin } from '../../../shared/network/messageTypes';
-import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/01_AbstractGameEntity';
+import { AbstractGameEntity, serializedEntity } from '../../../shared/gameObjects/20_AbstractGameEntity';
 import { Tree } from '../../../shared/gameObjects/60_Tree';
 import { Stone } from '../../../shared/gameObjects/60_Stone';
 import md5 from 'md5';
+import { SmoothDeserializeController } from '../../../shared/gameObjects/controllers/controllers/deserializers/SmoothDeserializeController';
+import { ImmediateDeserializeController } from '../../../shared/gameObjects/controllers/controllers/deserializers/ImmediateDeserializeController';
 
 type callback = (data: any) => void;
 
@@ -114,17 +116,20 @@ export class NetworkClient {
         switch (entity.type) {
             case 'player': {
                 const e = new Player(this.scene, entity.id);
-                e.deserialize(entity, true);
+                e.deserializeImmediatelly(entity);
+                e.controllerManager.attach(new SmoothDeserializeController(e));
                 return e;
             }
             case 'tree': {
                 const e = new Tree(this.scene, entity.id);
-                e.deserialize(entity);
+                e.deserializeImmediatelly(entity);
+                e.controllerManager.attach(new ImmediateDeserializeController(e));
                 return e;
             }
             case 'stone': {
                 const e = new Stone(this.scene, entity.id);
-                e.deserialize(entity);
+                e.deserializeImmediatelly(entity);
+                e.controllerManager.attach(new ImmediateDeserializeController(e));
                 return e;
             }
         }

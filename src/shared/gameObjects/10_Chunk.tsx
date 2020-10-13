@@ -1,7 +1,7 @@
 import { Scene, Vector2 } from 'babylonjs';
 import { AbstractGameObject } from './00_AbstractGameObject';
 import { GameScene } from '../Scene';
-import { AbstractGameEntity } from './01_AbstractGameEntity';
+import { AbstractGameEntity } from './20_AbstractGameEntity';
 import { ChunkRenderer } from './renderers/60_ChunkRenderer';
 
 export type tileType = number;
@@ -52,8 +52,6 @@ export class Chunk extends AbstractGameObject {
             entity.position.y < this.position.y * 16 + 8
         );
     }
-
-    // ========== BABYLON ===========
 
     async attachRenderer(scene: Scene) {
         super.attachRenderer(scene);

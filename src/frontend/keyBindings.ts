@@ -1,4 +1,4 @@
-import { keyBindings } from '../shared/gameObjects/controllers/10_AbstractMotionController';
+import { keyBindings } from '../shared/gameObjects/controllers/controllers/input/KeyboardController';
 
 // ARROWS
 export const CONTROLS_ARROWS: keyBindings = {

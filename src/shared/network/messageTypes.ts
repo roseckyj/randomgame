@@ -1,4 +1,4 @@
-import { serializedEntity } from '../gameObjects/01_AbstractGameEntity';
+import { serializedEntity } from '../gameObjects/20_AbstractGameEntity';
 
 export interface messageEntities {
     updated: serializedEntity<any>[];

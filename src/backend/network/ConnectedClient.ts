@@ -2,9 +2,10 @@ import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
 import { uuid } from 'uuidv4';
 import { Player, serializedPlayer } from '../../shared/gameObjects/60_Player';
 import { GameScene } from '../../shared/Scene';
-import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
+import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
 import { messageEntities, messageError, messageLogin, messageMapRequest } from '../../shared/network/messageTypes';
 import { IndexedList } from '../../shared/utils/IndexedList';
+import { ImmediateDeserializeController } from '../../shared/gameObjects/controllers/controllers/deserializers/ImmediateDeserializeController';
 
 const DISCONNECT_TIMEOUT = 3000;
 const RENDER_DISTANCE = 5;
@@ -55,6 +56,7 @@ export class ConnectedClient {
                 console.log('Registered new user ' + data.name);
                 this.player = new Player(this.scene, uuid());
                 this.player.name = data.name;
+                this.player.controllerManager.attach(new ImmediateDeserializeController(this.player));
                 this.scene.entities.add(this.player.id, this.player);
 
                 users[data.name] = {

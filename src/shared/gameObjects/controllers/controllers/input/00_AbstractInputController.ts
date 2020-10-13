@@ -1,12 +1,8 @@
-import { AbstractGameObject } from '../00_AbstractGameObject';
+import { AbstractController } from '../00_AbstractController';
 
-export abstract class AbstractController {
+export abstract class AbstractInputController extends AbstractController {
     protected keysPressed: number[] = [];
     protected mousePressed: number[] = [];
-
-    constructor(protected object: AbstractGameObject) {}
-
-    abstract tick(deltaTime: number): void;
 
     public keyDown(keyCode: number) {
         if (!this.keysPressed.includes(keyCode)) {

@@ -13,7 +13,8 @@ import { minimap } from './gui/minimap';
 import { debugInfo } from './gui/debugInfo';
 import { CAMERA_ANGLE, CAMERA_DISTANCE } from '../../shared/constants';
 import { shadeText } from './utils/shadeText';
-import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/01_AbstractGameEntity';
+import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
+import { KeyboardMotionController } from '../../shared/gameObjects/controllers/controllers/input/KeyboardController';
 
 export const MAX_RENDER_DISTANCE = 3;
 const REQUEST_DISTANCE = 3;
@@ -70,11 +71,11 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         });
 
         document.addEventListener('keydown', (event) => {
-            this.gameScene.entities.forEach((entity) => entity.controller && entity.controller.keyDown(event.keyCode));
+            this.gameScene.entities.forEach((entity) => entity.controllerManager.invoke('keyDown', event.keyCode));
         });
 
         document.addEventListener('keyup', (event) => {
-            this.gameScene.entities.forEach((entity) => entity.controller && entity.controller.keyUp(event.keyCode));
+            this.gameScene.entities.forEach((entity) => entity.controllerManager.invoke('keyUp', event.keyCode));
         });
 
         document.addEventListener('wheel', (event) => {
@@ -104,8 +105,9 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         });
         this.me = new Player(this.gameScene, player.id);
         this.me.attachRenderer(this.babylonScene!);
-        this.me.controller.bindKeys(CONTROLS_WASD);
-        this.me.deserialize(player, false);
+        this.me.controllerManager.attach(new KeyboardMotionController(this.me));
+        this.me.controllerManager.invoke('bindKeys', CONTROLS_WASD);
+        this.me.deserializeImmediatelly(player);
         this.gameScene.entities.add(player.id, this.me);
 
         (window as any).player = this.me;
@@ -199,7 +201,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
             if (pickResult.hit && pickResult.pickedMesh && !pickResult.pickedMesh.name.startsWith('chunk')) {
                 this.mouseEntity = this.gameScene.entities.get(pickResult.pickedMesh.name.split(' ')[1]);
                 if (this.mouseEntity) {
-                    this.mouseEntity.controller && this.mouseEntity.controller.mouseDown(event.button);
+                    this.mouseEntity.controllerManager.invoke('mouseDown', event.button);
                 }
             } else {
                 this.mouseEntity = null;
@@ -207,7 +209,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         };
         scene.onPointerUp = (event) => {
             if (this.mouseEntity) {
-                this.mouseEntity.controller && this.mouseEntity.controller.mouseUp(event.button);
+                this.mouseEntity.controllerManager.invoke('mouseUp', event.button);
             }
         };
 

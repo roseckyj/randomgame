@@ -88,17 +88,12 @@ export function minimap(guiTexture: AdvancedDynamicTexture, gameScene: GameScene
     gui.textAlign = 'center';
     shadeText(gui, ':', x0, y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30);
     gui.textAlign = 'right';
-    shadeText(
-        gui,
-        Math.floor(time.hour).toString(),
-        x0 - 10,
-        y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30,
-    );
+    shadeText(gui, Math.floor(time.hour).toString(), x0 - 5, y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30);
     gui.textAlign = 'left';
     shadeText(
         gui,
         Math.floor(time.min).toString().padStart(2, '0'),
-        x0 + 10,
+        x0 + 5,
         y0 + MINIMAP_SCALE * MINIMAP_DISTANCE + BORDER_WIDTH + 30,
     );
     gui.textAlign = 'center';

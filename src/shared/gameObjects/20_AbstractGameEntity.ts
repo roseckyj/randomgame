@@ -27,6 +27,8 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
 
     public controllerManager: ControllerManager;
 
+    private dirtyListener: (id: string) => void = (id: string) => {};
+
     constructor(public gameScene: GameScene, public id: string) {
         super(gameScene);
     }
@@ -58,6 +60,14 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
     }
 
     abstract attachControllers(platform: Platform): void;
+
+    attachDirtyListener(listener: (id: string) => void) {
+        this.dirtyListener = listener;
+    }
+
+    public setDirty() {
+        this.dirtyListener(this.id);
+    }
 
     abstract getSize(): Vector2;
 

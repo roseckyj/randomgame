@@ -1,7 +1,7 @@
 import { ConnectedClient } from './ConnectedClient';
 import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
 import { GameScene } from '../../shared/Scene';
-import express from "express";
+import express from 'express';
 import { ServerGUI } from './ServerGUI';
 
 export class NetworkServer {
@@ -58,7 +58,7 @@ export class NetworkServer {
         );
     }
 
-    private setDirty(keys: string[]): void {
+    public setDirty(keys: string[]): void {
         if (!this.dirtyEntities) this.dirtyEntities = [];
         keys.forEach((key) => !this.dirtyEntities.includes(key) && this.dirtyEntities.push(key));
     }

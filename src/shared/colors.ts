@@ -13,11 +13,13 @@ export function getTerrainColor(number: number): string {
 export function getEntityColor(type: string): string {
     switch (type) {
         case 'tree':
-            return '#2A4323';
+            return '#2A4323aa';
         case 'player':
             return '#000dff';
         case 'stone':
-            return '#dddddd';
+            return '#ddddddaa';
+        case 'chicken':
+            return '#ffffff';
     }
     return '#DDDDDD';
 }

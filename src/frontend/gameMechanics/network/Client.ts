@@ -8,6 +8,7 @@ import { AbstractGameEntity, Platform, serializedEntity } from '../../../shared/
 import { Tree } from '../../../shared/gameObjects/60_Tree';
 import { Stone } from '../../../shared/gameObjects/60_Stone';
 import md5 from 'md5';
+import { Chicken } from '../../../shared/gameObjects/60_Chicken';
 
 type callback = (data: any) => void;
 
@@ -111,25 +112,29 @@ export class NetworkClient {
     }
 
     private createEntity(entity: serializedEntity<any>): AbstractGameEntity | undefined {
+        let e = null;
         switch (entity.type) {
             case 'player': {
-                const e = new Player(this.scene, entity.id);
-                e.deserializeImmediatelly(entity);
-                e.attachControllers(Platform.Client);
-                return e;
+                e = new Player(this.scene, entity.id);
+                break;
             }
             case 'tree': {
-                const e = new Tree(this.scene, entity.id);
-                e.deserializeImmediatelly(entity);
-                e.attachControllers(Platform.Client);
-                return e;
+                e = new Tree(this.scene, entity.id);
+                break;
             }
             case 'stone': {
-                const e = new Stone(this.scene, entity.id);
-                e.deserializeImmediatelly(entity);
-                e.attachControllers(Platform.Client);
-                return e;
+                e = new Stone(this.scene, entity.id);
+                break;
             }
+            case 'chicken': {
+                e = new Chicken(this.scene, entity.id);
+                break;
+            }
+        }
+        if (e) {
+            e.deserializeImmediatelly(entity);
+            e.attachControllers(Platform.Client);
+            return e;
         }
         console.error('Entity "' + entity.type + ' does not exist!');
     }

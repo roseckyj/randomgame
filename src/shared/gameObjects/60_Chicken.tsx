@@ -2,14 +2,19 @@ import { Scene, Vector2 } from 'babylonjs';
 import { GameScene } from '../Scene';
 import { AbstractGameEntity, Platform, serializedEntity } from './20_AbstractGameEntity';
 import { ControllerManager } from './controllers/ControllerManager';
+import { ChickenAIController } from './controllers/controllers/ai/ChickenAIController';
 import { ImmediateDeserializeController } from './controllers/controllers/deserializers/ImmediateDeserializeController';
+import { SmoothDeserializeController } from './controllers/controllers/deserializers/SmoothDeserializeController';
 import { SimpleRenderer } from './renderers/10_SimpleRenderer';
-import { StaticRenderer } from './renderers/11_StaticRenderer';
 
-export interface serializedChicken {}
+export interface serializedChicken {
+    inLove: string;
+}
 
 export class Chicken extends AbstractGameEntity {
     public hitbox = { width: 0.2, height: 0.2 };
+
+    public inLove: string = '';
 
     constructor(gameScene: GameScene, public id: string) {
         super(gameScene, id);
@@ -20,7 +25,9 @@ export class Chicken extends AbstractGameEntity {
     serialize(): serializedEntity<serializedChicken> {
         let sup = super.serialize() as serializedEntity<serializedChicken>;
         sup.type = Chicken.type;
-        sup.data = {};
+        sup.data = {
+            inLove: this.inLove,
+        };
         return sup;
     }
 
@@ -42,10 +49,11 @@ export class Chicken extends AbstractGameEntity {
 
     attachControllers(platform: Platform) {
         if (platform === Platform.Server) {
-            this.controllerManager.attach(new ImmediateDeserializeController(this));
+            this.controllerManager.attach(new ChickenAIController(this));
         }
         if (platform === Platform.Client) {
-            this.controllerManager.attach(new ImmediateDeserializeController(this));
+            this.controllerManager.attach(new SmoothDeserializeController(this));
+            this.controllerManager.invoke('setSmoothTime', 200);
         }
     }
 

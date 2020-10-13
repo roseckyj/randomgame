@@ -1,7 +1,7 @@
 import { AbstractGameEntity, serializedEntity } from '../../../20_AbstractGameEntity';
 import { AbstractController } from '../AbstractController';
 
-const SMOOTH_TIME = 110;
+const SMOOTH_TIME_DEFAULT = 110;
 
 export class SmoothDeserializeController extends AbstractController {
     private targetX: number = 0;
@@ -9,6 +9,8 @@ export class SmoothDeserializeController extends AbstractController {
     private finalVelocityX: number = 0;
     private finalVelocityY: number = 0;
     private targetTime: number = -1;
+
+    private smoothTime: number = SMOOTH_TIME_DEFAULT;
 
     constructor(protected object: AbstractGameEntity) {
         super(object);
@@ -32,14 +34,18 @@ export class SmoothDeserializeController extends AbstractController {
         }
     }
 
+    public setSmoothTime(time: number) {
+        this.smoothTime = time;
+    }
+
     public deserialize(serialized: serializedEntity<any>) {
         this.targetX = serialized.x;
         this.targetY = serialized.y;
 
         this.finalVelocityX = serialized.velocityX;
         this.finalVelocityY = serialized.velocityY;
-        this.targetTime = SMOOTH_TIME;
-        this.object.velocity.x = (serialized.x - this.object.position.x) / SMOOTH_TIME;
-        this.object.velocity.y = (serialized.y - this.object.position.y) / SMOOTH_TIME;
+        this.targetTime = this.smoothTime;
+        this.object.velocity.x = (serialized.x - this.object.position.x) / this.smoothTime;
+        this.object.velocity.y = (serialized.y - this.object.position.y) / this.smoothTime;
     }
 }

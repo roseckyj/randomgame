@@ -5,7 +5,7 @@ import { Vector2 } from 'babylonjs';
 import { Chunk } from '../../shared/gameObjects/10_Chunk';
 import { Tree } from '../../shared/gameObjects/60_Tree';
 import { Stone } from '../../shared/gameObjects/60_Stone';
-import { ImmediateDeserializeController } from '../../shared/gameObjects/controllers/controllers/deserializers/ImmediateDeserializeController';
+import { Chicken } from '../../shared/gameObjects/60_Chicken';
 import { Platform } from '../../shared/gameObjects/20_AbstractGameEntity';
 
 export class SimpleMapGenerator extends AbstractMapGenerator {
@@ -63,6 +63,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                     y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                 );
                 tree.attachControllers(Platform.Server);
+                tree.attachDirtyListener(this.getDirtyListener());
                 if (Math.random() > 0.5) {
                     tree.size = 4;
                 } else if (Math.random() > 0.5) {
@@ -87,8 +88,21 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
             );
             stone.size = Math.random() > 0.7 ? 1 : 2;
             stone.attachControllers(Platform.Server);
+            stone.attachDirtyListener(this.getDirtyListener());
             this.scene.entities.add(stone.id, stone);
             return 1;
+        }
+
+        if (Math.random() > 0.999) {
+            // Chicken
+            const chicken = new Chicken(this.scene, uuid());
+            chicken.position = new Vector2(
+                x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+                y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
+            );
+            chicken.attachControllers(Platform.Server);
+            chicken.attachDirtyListener(this.getDirtyListener());
+            this.scene.entities.add(chicken.id, chicken);
         }
 
         return 1; // Grass

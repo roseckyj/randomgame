@@ -29,4 +29,23 @@ export class GameScene {
     getColisions(entity: AbstractGameEntity) {
         return this.entities.filter((value) => entity !== value && value.colidesWith(entity));
     }
+
+    getClosestEntityOfType(entity: AbstractGameEntity, type: any) {
+        const closest = this.entities
+            .filter((e) => e instanceof type)
+            .getValues()
+            .sort((a, b) => this.distance(entity, a) - this.distance(entity, b));
+
+        if (closest[0]) {
+            return {
+                entity: closest[0],
+                distance: this.distance(entity, closest[0]),
+            };
+        }
+        return null;
+    }
+
+    private distance(a: AbstractGameEntity, b: AbstractGameEntity) {
+        return Math.sqrt(Math.pow(a.position.x - b.position.x, 2) + Math.pow(a.position.y - b.position.y, 2));
+    }
 }

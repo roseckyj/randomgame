@@ -1,7 +1,8 @@
 import { Scene, Vector2 } from 'babylonjs';
 import { GameScene } from '../Scene';
-import { AbstractGameEntity, serializedEntity } from './20_AbstractGameEntity';
+import { AbstractGameEntity, Platform, serializedEntity } from './20_AbstractGameEntity';
 import { ControllerManager } from './controllers/ControllerManager';
+import { ImmediateDeserializeController } from './controllers/controllers/deserializers/ImmediateDeserializeController';
 import { StaticRenderer } from './renderers/11_StaticRenderer';
 
 export interface serializedStone {
@@ -43,6 +44,15 @@ export class Stone extends AbstractGameEntity {
         super.attachRenderer(scene);
 
         this.renderer = new StaticRenderer(this, scene, () => (this.size === 1 ? 'rock_small' : 'rock_big'));
+    }
+
+    registerControllers(platform: Platform) {
+        if (platform === Platform.Server) {
+            this.controllerManager.attach(new ImmediateDeserializeController(this));
+        }
+        if (platform === Platform.Client) {
+            this.controllerManager.attach(new ImmediateDeserializeController(this));
+        }
     }
 
     getSize() {

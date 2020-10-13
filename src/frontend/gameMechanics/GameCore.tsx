@@ -13,8 +13,7 @@ import { minimap } from './gui/minimap';
 import { debugInfo } from './gui/debugInfo';
 import { CAMERA_ANGLE, CAMERA_DISTANCE } from '../../shared/constants';
 import { shadeText } from './utils/shadeText';
-import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
-import { KeyboardMotionController } from '../../shared/gameObjects/controllers/controllers/input/KeyboardController';
+import { AbstractGameEntity, Platform, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
 
 export const MAX_RENDER_DISTANCE = 3;
 const REQUEST_DISTANCE = 3;
@@ -105,7 +104,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         });
         this.me = new Player(this.gameScene, player.id);
         this.me.attachRenderer(this.babylonScene!);
-        this.me.controllerManager.attach(new KeyboardMotionController(this.me));
+        this.me.registerControllers(Platform.Client, true);
         this.me.controllerManager.invoke('bindKeys', CONTROLS_WASD);
         this.me.deserializeImmediatelly(player);
         this.gameScene.entities.add(player.id, this.me);

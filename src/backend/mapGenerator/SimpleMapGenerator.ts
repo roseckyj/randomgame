@@ -6,6 +6,7 @@ import { Chunk } from '../../shared/gameObjects/10_Chunk';
 import { Tree } from '../../shared/gameObjects/60_Tree';
 import { Stone } from '../../shared/gameObjects/60_Stone';
 import { ImmediateDeserializeController } from '../../shared/gameObjects/controllers/controllers/deserializers/ImmediateDeserializeController';
+import { Platform } from '../../shared/gameObjects/20_AbstractGameEntity';
 
 export class SimpleMapGenerator extends AbstractMapGenerator {
     simplex = new SimplexNoise(this.seed.toString());
@@ -61,7 +62,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                     x + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                     y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
                 );
-                tree.controllerManager.attach(new ImmediateDeserializeController(tree));
+                tree.registerControllers(Platform.Server);
                 if (Math.random() > 0.5) {
                     tree.size = 4;
                 } else if (Math.random() > 0.5) {
@@ -85,7 +86,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                 y + Math.random() * 2 * RANDOMNESS - RANDOMNESS - 8 + 0.5,
             );
             stone.size = Math.random() > 0.7 ? 1 : 2;
-            stone.controllerManager.attach(new ImmediateDeserializeController(stone));
+            stone.registerControllers(Platform.Server);
             this.scene.entities.add(stone.id, stone);
             return 1;
         }

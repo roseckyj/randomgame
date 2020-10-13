@@ -2,7 +2,7 @@ import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
 import { uuid } from 'uuidv4';
 import { Player, serializedPlayer } from '../../shared/gameObjects/60_Player';
 import { GameScene } from '../../shared/Scene';
-import { AbstractGameEntity, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
+import { AbstractGameEntity, Platform, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
 import { messageEntities, messageError, messageLogin, messageMapRequest } from '../../shared/network/messageTypes';
 import { IndexedList } from '../../shared/utils/IndexedList';
 import { ImmediateDeserializeController } from '../../shared/gameObjects/controllers/controllers/deserializers/ImmediateDeserializeController';
@@ -56,7 +56,7 @@ export class ConnectedClient {
                 console.log('Registered new user ' + data.name);
                 this.player = new Player(this.scene, uuid());
                 this.player.name = data.name;
-                this.player.controllerManager.attach(new ImmediateDeserializeController(this.player));
+                this.player.registerControllers(Platform.Server);
                 this.scene.entities.add(this.player.id, this.player);
 
                 users[data.name] = {

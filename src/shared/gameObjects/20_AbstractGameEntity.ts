@@ -13,6 +13,11 @@ export interface serializedEntity<T> {
     data: T;
 }
 
+export enum Platform {
+    Server = 'SERVER',
+    Client = 'CLIENT',
+}
+
 export abstract class AbstractGameEntity extends AbstractGameObject {
     // Should be used for all entities, buildings, trees, etc.
 
@@ -51,6 +56,8 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         this.controllerManager.invoke('deserialize', serialized);
         this.update();
     }
+
+    abstract registerControllers(platform: Platform): void;
 
     abstract getSize(): Vector2;
 

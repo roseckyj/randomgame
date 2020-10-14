@@ -3,7 +3,7 @@ import { Player, serializedPlayer } from '../../../shared/gameObjects/60_Player'
 import { GameScene } from '../../../shared/Scene';
 import babylonjs from 'babylonjs';
 import { serializedChunk, Chunk } from '../../../shared/gameObjects/10_Chunk';
-import { messageEntities, messageError, messageLogin } from '../../../shared/network/messageTypes';
+import { messageEntities, messageError, messageLogin, messageUpdate } from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, Platform, serializedEntity } from '../../../shared/gameObjects/20_AbstractGameEntity';
 import { Tree } from '../../../shared/gameObjects/60_Tree';
 import { Stone } from '../../../shared/gameObjects/60_Stone';
@@ -46,7 +46,10 @@ export class NetworkClient {
     }
 
     public sendPlayerUpdate(player: Player) {
-        const payload: serializedEntity<serializedPlayer> = player.serialize();
+        const payload: messageUpdate = {
+            player: player.serialize(),
+            loadedChunks: this.scene.chunks.filter((ch) => ch.getVisibility()).map((ch) => ch.id),
+        };
         this.socket.emit('update', payload);
     }
 
@@ -64,7 +67,7 @@ export class NetworkClient {
 
     private setListeners() {
         this.socket.on('entities', async (data: messageEntities) => {
-            data.removed.forEach((entity) => entity.id !== this.userId && this.scene.entities.remove(entity.id));
+            data.removed.forEach((entity) => entity !== this.userId && this.scene.entities.remove(entity));
             data.updated /*.filter((entity) => {
                 const me = this.scene.entities.get(this.userId);
                 if (!me) return false;
@@ -136,6 +139,7 @@ export class NetworkClient {
         if (e) {
             e.deserializeImmediatelly(entity);
             e.attachControllers(Platform.Client);
+            e.attachDirtyListener((entity) => this.scene.updateEntity(entity));
             return e;
         }
         console.error('Entity "' + entity.type + ' does not exist!');

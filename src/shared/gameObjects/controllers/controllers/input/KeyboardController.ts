@@ -108,6 +108,8 @@ export class KeyboardMotionController extends AbstractInputController {
                 this.object.velocity.y = 0;
             }
         }
+
+        this.object.setDirty();
     }
 
     public bindKeys(newBindings: Partial<keyBindings>) {

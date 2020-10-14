@@ -14,6 +14,7 @@ export interface serializedChunk {
 
 export class Chunk extends AbstractGameObject {
     public ground: tileType[][] = [[]];
+    public entities: Set<AbstractGameEntity> = new Set();
 
     constructor(public gameScene: GameScene, x: number, y: number) {
         super(gameScene);
@@ -51,6 +52,18 @@ export class Chunk extends AbstractGameObject {
             entity.position.y > this.position.y * 16 - 8 &&
             entity.position.y < this.position.y * 16 + 8
         );
+    }
+
+    public updateEntity(entity: AbstractGameEntity) {
+        if (this.hasEntity(entity)) {
+            if (!this.entities.has(entity)) {
+                this.entities.add(entity);
+            }
+        } else {
+            if (this.entities.has(entity)) {
+                this.entities.delete(entity);
+            }
+        }
     }
 
     async attachRenderer(scene: Scene) {

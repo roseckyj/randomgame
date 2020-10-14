@@ -3,9 +3,15 @@ import { uuid } from 'uuidv4';
 import { Player, serializedPlayer } from '../../shared/gameObjects/60_Player';
 import { GameScene } from '../../shared/Scene';
 import { AbstractGameEntity, Platform, serializedEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
-import { messageEntities, messageError, messageLogin, messageMapRequest } from '../../shared/network/messageTypes';
+import {
+    messageEntities,
+    messageError,
+    messageLogin,
+    messageMapRequest,
+    messageUpdate,
+} from '../../shared/network/messageTypes';
 import { IndexedList } from '../../shared/utils/IndexedList';
-import { ImmediateDeserializeController } from '../../shared/gameObjects/controllers/controllers/deserializers/ImmediateDeserializeController';
+import { Chunk } from '../../shared/gameObjects/10_Chunk';
 
 const DISCONNECT_TIMEOUT = 3000;
 const RENDER_DISTANCE = 5;
@@ -17,13 +23,14 @@ export class ConnectedClient {
     aliveTimeout: NodeJS.Timeout;
 
     player: Player | null = null;
-    activeEntities: string[] = [];
+    activeEntities: Set<AbstractGameEntity> = new Set();
+    activeChunks: Set<Chunk> = new Set();
 
     constructor(
         private socket: SocketIO.Socket,
         private scene: GameScene,
         private mapGenerator: AbstractMapGenerator,
-        private setDirty: (keys: string[]) => void,
+        private setDirty: (entities: AbstractGameEntity[]) => void,
     ) {
         this.socket.on('client_ping', (data: any) => {
             this.socket.emit('client_pong', data);
@@ -58,6 +65,7 @@ export class ConnectedClient {
                 this.player.name = data.name;
                 this.player.attachControllers(Platform.Server);
                 this.scene.entities.add(this.player.id, this.player);
+                this.player.attachDirtyListener((entity) => this.scene.updateEntity(entity));
 
                 users[data.name] = {
                     passwordHash: data.passwordHash,
@@ -68,67 +76,27 @@ export class ConnectedClient {
         });
     }
 
-    public async sendUpdates(dirtyEntities: string[]) {
+    public async sendUpdates(dirtyEntities: Set<AbstractGameEntity>) {
         if (!this.player) return;
-        /*
 
-        const newInRange: string[] = [];
+        const set = new Set<AbstractGameEntity>();
+        this.activeChunks.forEach((chunk) => chunk.entities.forEach((e) => set.add(e)));
 
-        this.scene.entities.forEach((entity) => {
-            if (entity.disabled || entity.id === this.player!.id) return;
+        const dirtyInRange = Array.from(set).filter((e) => dirtyEntities.has(e));
 
-            const distX = Math.abs(Math.round(this.player!.position.x) - entity.position.x) / 16;
-            const distY = Math.abs(Math.round(this.player!.position.y) - entity.position.y) / 16;
-
-            if (distX < RENDER_DISTANCE && distY < RENDER_DISTANCE) {
-                newInRange.push(entity.id);
-            }
-        });
-
-        const newlyAdded = newInRange.filter((key) => !this.activeEntities.includes(key));
-        const dirty = newInRange.filter((key) => this.scene.entities.get(key)?.dirty);
-
-        const removed = this.activeEntities
-            .filter((key) => !newInRange.includes(key))
-            .map((key) => this.scene.entities.get(key)!.serialize());
-
-        const updated = newlyAdded.concat(dirty).map((key) => this.scene.entities.get(key)!.serialize());
-
-        if (updated.length === 0 && removed.length === 0) return;
-
-        const message: messageEntities = {
-            updated: updated,
-            removed: removed,
-        };
-
-        this.socket.emit('entities', message);
-
-        this.activeEntities = newInRange;
-        */
-
-        const dirtyInRange = dirtyEntities
-            .map((key) => this.scene.entities.get(key))
-            .filter((entity) => {
-                if (!entity || entity.id === this.player!.id) return false;
-
-                const distX = Math.abs(Math.round(this.player!.position.x) - entity.position.x) / 16;
-                const distY = Math.abs(Math.round(this.player!.position.y) - entity.position.y) / 16;
-
-                if (distX < RENDER_DISTANCE && distY < RENDER_DISTANCE) {
-                    return true;
-                }
-                return false;
-            }) as AbstractGameEntity[];
+        set.forEach((e) => this.activeEntities.delete(e));
 
         const updated = dirtyInRange.filter((value) => !value.disabled);
-        const removed = dirtyEntities.map((key) => this.scene.entities.get(key)!).filter((value) => value.disabled);
+        const removed = Array.from(this.activeEntities).map((chunk) => chunk.id);
 
         const message: messageEntities = {
             updated: updated.map((value) => value.serialize()),
-            removed: removed.map((value) => value.serialize()),
+            removed: removed,
             time: this.scene.timeStart,
         };
         this.socket.emit('entities', message);
+
+        this.activeEntities = set;
     }
 
     private authenticated() {
@@ -153,10 +121,10 @@ export class ConnectedClient {
     }
 
     private setListeners() {
-        this.socket.on('update', async (data: serializedEntity<serializedPlayer>) => {
-            this.scene.entities.update(data.id, data, false);
+        this.socket.on('update', async (data: messageUpdate) => {
+            this.scene.entities.update(data.player.id, data.player, false);
+            this.activeChunks = new Set(data.loadedChunks.map((id) => this.scene.chunks.get(id)!));
             this.keepAlive();
-            this.setDirty([data.id]);
         });
 
         this.socket.on('mapRequest', async (data: messageMapRequest) => {
@@ -199,7 +167,7 @@ export class ConnectedClient {
     private die() {
         if (this.player) {
             this.player.disabled = true;
-            this.setDirty([this.player.id]);
+            this.setDirty([this.player]);
         }
         this.alive = false;
         //this.socket.disconnect();

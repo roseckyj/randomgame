@@ -1,8 +1,9 @@
 import { serializedEntity } from '../gameObjects/20_AbstractGameEntity';
+import { serializedPlayer } from '../gameObjects/60_Player';
 
 export interface messageEntities {
     updated: serializedEntity<any>[];
-    removed: serializedEntity<any>[];
+    removed: string[];
     time: number;
 }
 
@@ -19,4 +20,9 @@ export interface messageLogin {
 export interface messageError {
     error: string;
     description: string;
+}
+
+export interface messageUpdate {
+    player: serializedEntity<serializedPlayer>;
+    loadedChunks: string[];
 }

@@ -20,17 +20,15 @@ function createTile(scene: GameScene, ctx: CanvasRenderingContext2D, x: number, 
 
             if (chunk) {
                 ChunkRenderer.drawBasicTiling(chunk, ctx, tX * z * 16, tY * z * 16, z);
-                scene.entities
-                    .filter((entity) => chunk.hasEntity(entity) && !(entity instanceof Player))
-                    .forEach((entity) => {
-                        ctx.fillStyle = getEntityColor(entity.serialize().type);
-                        ctx.fillRect(
-                            (entity.position.x - chunkX * 16 + 8) * z - z * (ENTITY_SCALE / 2) + tX * z * 16,
-                            (entity.position.y - chunkY * 16 + 8) * z - z * (ENTITY_SCALE / 2) + tY * z * 16,
-                            z * ENTITY_SCALE,
-                            z * ENTITY_SCALE,
-                        );
-                    });
+                chunk.entities.forEach((entity) => {
+                    ctx.fillStyle = getEntityColor(entity.serialize().type);
+                    ctx.fillRect(
+                        (entity.position.x - chunkX * 16 + 8) * z - z * (ENTITY_SCALE / 2) + tX * z * 16,
+                        (entity.position.y - chunkY * 16 + 8) * z - z * (ENTITY_SCALE / 2) + tY * z * 16,
+                        z * ENTITY_SCALE,
+                        z * ENTITY_SCALE,
+                    );
+                });
             }
 
             /*

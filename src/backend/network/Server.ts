@@ -3,6 +3,8 @@ import { AbstractMapGenerator } from '../mapGenerator/AbstractMapGenerator';
 import { GameScene } from '../../shared/Scene';
 import express from 'express';
 import { ServerGUI } from './ServerGUI';
+import { Chunk } from '../../shared/gameObjects/10_Chunk';
+import { AbstractGameEntity } from '../../shared/gameObjects/20_AbstractGameEntity';
 
 export class NetworkServer {
     expressApp = express();
@@ -11,11 +13,11 @@ export class NetworkServer {
     serverGUI: ServerGUI;
 
     connectedClients: ConnectedClient[] = [];
-    dirtyEntities: string[] = [];
+    dirtyEntities: Set<AbstractGameEntity> = new Set();
 
     constructor(private port: number | string, private scene: GameScene, mapGenerator: AbstractMapGenerator) {
         this.socketServer.on('connection', (socket: SocketIO.Socket) => {
-            this.connectedClients.push(new ConnectedClient(socket, scene, mapGenerator, (keys) => this.setDirty(keys)));
+            this.connectedClients.push(new ConnectedClient(socket, scene, mapGenerator, (e) => this.setDirty(e)));
         });
 
         this.serverGUI = new ServerGUI(this.expressApp, scene);
@@ -53,13 +55,21 @@ export class NetworkServer {
         //console.log("dirty: ", dirty.getKeys().length, "  dead: ", dead.getKeys().length)
         */
 
+        /*
         this.dirtyEntities = this.dirtyEntities.filter(
             (e) => this.scene.entities.get(e)?.serialize().type === 'player',
         );
+        */
     }
 
-    public setDirty(keys: string[]): void {
-        if (!this.dirtyEntities) this.dirtyEntities = [];
-        keys.forEach((key) => !this.dirtyEntities.includes(key) && this.dirtyEntities.push(key));
+    public setDirty(entities: AbstractGameEntity[]): void {
+        if (!this.dirtyEntities) this.dirtyEntities = new Set();
+        entities.forEach((e) => this.dirtyEntities.add(e));
+    }
+
+    public getActiveChunks() {
+        let set = new Set<Chunk>();
+        this.connectedClients.forEach((client) => client.activeChunks.forEach((chunk) => set.add(chunk)));
+        return set;
     }
 }

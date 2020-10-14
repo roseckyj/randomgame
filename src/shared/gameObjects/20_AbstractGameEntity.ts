@@ -27,7 +27,7 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
 
     public controllerManager: ControllerManager;
 
-    private dirtyListener: (id: string) => void = (id: string) => {};
+    private dirtyListeners: ((entity: AbstractGameEntity) => void)[] = [];
 
     constructor(public gameScene: GameScene, public id: string) {
         super(gameScene);
@@ -52,21 +52,23 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         this.velocity.y = serialized.velocityY;
         this.deserialize(serialized);
         this.update();
+        this.setDirty();
     }
 
     deserialize(serialized: any): void {
         this.controllerManager.invoke('deserialize', serialized);
         this.update();
+        this.setDirty();
     }
 
     abstract attachControllers(platform: Platform): void;
 
-    attachDirtyListener(listener: (id: string) => void) {
-        this.dirtyListener = listener;
+    attachDirtyListener(listener: (entity: AbstractGameEntity) => void) {
+        this.dirtyListeners.push(listener);
     }
 
     public setDirty() {
-        this.dirtyListener(this.id);
+        this.dirtyListeners.forEach((listener) => listener(this));
     }
 
     abstract getSize(): Vector2;

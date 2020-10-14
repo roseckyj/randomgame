@@ -16,6 +16,9 @@
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""
         ></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css" />
+        <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
     </head>
     <body style="margin: 0; padding: 0">
         <div id="mapid" style="width: 100vw; height: 100vh"></div>
@@ -82,9 +85,9 @@
 
             update();
 
-            setInterval(() => {
+            L.easyButton('fa-refresh', function (btn, map) {
                 update();
-            }, 5000);
+            }).addTo(map);
         </script>
     </body>
 </html>

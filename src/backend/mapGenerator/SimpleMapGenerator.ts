@@ -32,7 +32,8 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
 
         const chunk = new Chunk(this.scene, chunkX, chunkY);
         chunk.ground = chunkData;
-        this.scene.chunks.add(Chunk.getId(chunkX, chunkY), chunk);
+        this.scene.entities.forEach((e) => chunk.updateEntity(e));
+        this.scene.chunks.add(chunk.id, chunk);
 
         return chunk;
     }
@@ -64,6 +65,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
                 );
                 tree.attachControllers(Platform.Server);
                 tree.attachDirtyListener(this.getDirtyListener());
+                tree.attachDirtyListener((entity) => this.scene.updateEntity(entity));
                 if (Math.random() > 0.5) {
                     tree.size = 4;
                 } else if (Math.random() > 0.5) {
@@ -89,6 +91,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
             stone.size = Math.random() > 0.7 ? 1 : 2;
             stone.attachControllers(Platform.Server);
             stone.attachDirtyListener(this.getDirtyListener());
+            stone.attachDirtyListener((entity) => this.scene.updateEntity(entity));
             this.scene.entities.add(stone.id, stone);
             return 1;
         }
@@ -102,6 +105,7 @@ export class SimpleMapGenerator extends AbstractMapGenerator {
             );
             chicken.attachControllers(Platform.Server);
             chicken.attachDirtyListener(this.getDirtyListener());
+            chicken.attachDirtyListener((entity) => this.scene.updateEntity(entity));
             this.scene.entities.add(chicken.id, chicken);
         }
 

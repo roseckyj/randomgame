@@ -108,6 +108,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.me.controllerManager.invoke('bindKeys', CONTROLS_WASD);
         this.me.deserializeImmediatelly(player);
         this.gameScene.entities.add(player.id, this.me);
+        this.me.attachDirtyListener((entity) => this.gameScene.updateEntity(entity));
 
         (window as any).player = this.me;
         (window as any).scene = this.gameScene;
@@ -192,7 +193,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         const nightLightIntensity = 0.5;
 
         const dayLight = new DirectionalLight('dayLight', new Vector3(0, 1, 2), this.babylonScene);
-        dayLight.diffuse = new BABYLON.Color3(1, 1, 0.8);
+        dayLight.diffuse = new BABYLON.Color3(1, 1, 1);
         const dayLightIntensity = 1.5;
 
         //const shadowGenerator = new ShadowGenerator(1024, light);

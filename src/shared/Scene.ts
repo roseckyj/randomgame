@@ -12,6 +12,17 @@ export class GameScene {
         this.chunks.forEach((value) => value.tick(deltaTime));
     }
 
+    tickChunks(deltaTime: number, chunks: Set<Chunk>) {
+        chunks.forEach((chunk) => {
+            chunk.tick(deltaTime);
+            chunk.entities.forEach((entity) => entity.tick(deltaTime));
+        });
+    }
+
+    public updateEntity(entity: AbstractGameEntity) {
+        this.chunks.forEach((value) => value.updateEntity(entity));
+    }
+
     getTile(x: number, y: number) {
         const calcX = Math.floor(x) + 8;
         const calcY = Math.floor(y) + 8;

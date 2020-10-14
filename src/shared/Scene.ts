@@ -62,7 +62,7 @@ export class GameScene {
     }
 
     getTime() {
-        const REAL_TO_INGAME_TIME = 10 * 60;
+        const REAL_TO_INGAME_TIME = 1 * 60;
         let time = (Math.abs(new Date().getTime() - this.timeStart) / 1000) * REAL_TO_INGAME_TIME + 12 * 60 * 60;
 
         return {

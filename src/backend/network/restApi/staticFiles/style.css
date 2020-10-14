@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
     font-family: pixel;
     background-color: #101010;
     color: white;
@@ -21,7 +22,7 @@ a {
 }
 
 a:hover {
-    color:white;
+    color: white;
 }
 
 ul {

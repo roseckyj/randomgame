@@ -30,10 +30,10 @@ export class Chicken extends AbstractGameEntity {
         return sup;
     }
 
-    deserialize(serialized: serializedEntity<serializedChicken>): void {
-        if (serialized.type !== Chicken.type) return;
+    deserialize(serialized: serializedEntity<serializedChicken>, timestamp: number): void {
+        if (serialized.type !== Chicken.type || timestamp < this.updatedAt) return;
 
-        super.deserialize(serialized);
+        super.deserialize(serialized, timestamp);
     }
 
     static get type() {

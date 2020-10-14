@@ -1,8 +1,9 @@
 import express from 'express';
 import { Player } from '../../../shared/gameObjects/60_Player';
 import { GameScene } from '../../../shared/Scene';
+import { NetworkServer } from '../Server';
 
-export function setupHomepage(expressApp: express.Application, scene: GameScene) {
+export function setupHomepage(expressApp: express.Application, server: NetworkServer) {
     expressApp.get('/static/*', (req, res) => {
         res.sendFile(__dirname + '/staticFiles/' + req.params[0]);
     });
@@ -29,13 +30,16 @@ export function setupHomepage(expressApp: express.Application, scene: GameScene)
                 upSince.toUTCString() +
                 `</li>
                     <li>Entities: ` +
-                scene.entities.length() +
+                server.scene.entities.length() +
                 `</li>
                     <li>Chunks: ` +
-                scene.chunks.length() +
+                server.scene.chunks.length() +
+                ` (active ` +
+                server.getActiveChunks().size +
+                `)` +
                 `</li>
                     <li>Players online: ` +
-                scene.entities.filter((entity) => entity instanceof Player && !entity.disabled).length() +
+                server.scene.entities.filter((entity) => entity instanceof Player && !entity.disabled).length() +
                 `</li>
                 </ul>
                 <br/>

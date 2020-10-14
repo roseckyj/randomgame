@@ -17,16 +17,16 @@ export class IndexedList<T extends AbstractGameObject> {
         delete this.values[key];
     }
 
-    update(key: string, serialized: any, smooth?: boolean) {
+    update(key: string, serialized: any, timestamp: number) {
         if (!this.values[key]) return;
-        this.values[key].deserialize(serialized, smooth);
+        this.values[key].deserialize(serialized, timestamp);
     }
 
-    updateOrCreate(key: string, serialized: any, newObjectCreator: () => T, smooth?: boolean) {
+    updateOrCreate(key: string, serialized: any, newObjectCreator: () => T, timestamp: number) {
         if (!this.values[key]) {
             this.values[key] = newObjectCreator();
         }
-        this.values[key].deserialize(serialized, smooth);
+        this.values[key].deserialize(serialized, timestamp);
     }
 
     get(key: string) {

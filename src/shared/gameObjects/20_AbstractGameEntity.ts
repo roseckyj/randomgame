@@ -29,6 +29,8 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
 
     private dirtyListeners: ((entity: AbstractGameEntity) => void)[] = [];
 
+    public updatedAt: number = 0;
+
     constructor(public gameScene: GameScene, public id: string) {
         super(gameScene);
     }
@@ -45,18 +47,19 @@ export abstract class AbstractGameEntity extends AbstractGameObject {
         };
     }
 
-    deserializeImmediatelly(serialized: any): void {
+    deserializeImmediatelly(serialized: any, timestamp: number): void {
         this.position.x = serialized.x;
         this.position.y = serialized.y;
         this.velocity.x = serialized.velocityX;
         this.velocity.y = serialized.velocityY;
-        this.deserialize(serialized);
+        this.deserialize(serialized, timestamp);
         this.update();
         this.setDirty();
     }
 
-    deserialize(serialized: any): void {
+    deserialize(serialized: any, timestamp: number): void {
         this.controllerManager.invoke('deserialize', serialized);
+        this.updatedAt = timestamp;
         this.update();
         this.setDirty();
     }

@@ -31,11 +31,11 @@ export class Tree extends AbstractGameEntity {
         return sup;
     }
 
-    deserialize(serialized: serializedEntity<serializedTree>): void {
-        if (serialized.type !== Tree.type) return;
+    deserialize(serialized: serializedEntity<serializedTree>, timestamp: number): void {
+        if (serialized.type !== Tree.type || timestamp < this.updatedAt) return;
 
         this.size = serialized.data.size;
-        super.deserialize(serialized);
+        super.deserialize(serialized, timestamp);
     }
 
     static get type() {

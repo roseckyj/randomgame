@@ -11,7 +11,7 @@ export abstract class AbstractGameObject {
 
     abstract serialize(): any;
 
-    abstract deserialize(serialized: any, smooth?: boolean): void;
+    abstract deserialize(serialized: any, timestamp: number): void;
 
     async attachRenderer(babylonScene: Scene) {
         if (this.renderer && this.renderer.attached) {

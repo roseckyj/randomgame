@@ -3,7 +3,6 @@ import { SimpleMapGenerator } from './mapGenerator/SimpleMapGenerator';
 import { AbstractMapGenerator } from './mapGenerator/AbstractMapGenerator';
 import { GameScene } from '../shared/Scene';
 import { AbstractGameEntity } from '../shared/gameObjects/20_AbstractGameEntity';
-import { convertCompilerOptionsFromJson } from 'typescript';
 
 const TICK_TIME = 10;
 const UPDATE_TIME = 100;
@@ -14,6 +13,8 @@ export class GameCore {
     networkServer: NetworkServer;
     updateTimer: NodeJS.Timeout;
     tickTimer: NodeJS.Timeout;
+
+    lastTick = new Date().getTime();
 
     constructor(port: number, seed?: string) {
         this.gameScene = new GameScene();
@@ -27,7 +28,13 @@ export class GameCore {
         console.log('Map seed: ', this.mapGenerator.seed);
 
         this.tickTimer = setInterval(() => {
-            this.gameScene.tickChunks(TICK_TIME, this.networkServer.getActiveChunks());
+            const time = new Date().getTime();
+            const deltaTime = time - this.lastTick;
+            if (deltaTime > 100) {
+                console.warn('Server is running less than 10 ticks per second!', deltaTime);
+            }
+            this.gameScene.tickChunks(deltaTime, this.networkServer.getActiveChunks());
+            this.lastTick = time;
         }, TICK_TIME);
 
         /*

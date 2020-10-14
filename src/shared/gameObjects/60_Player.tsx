@@ -31,11 +31,11 @@ export class Player extends AbstractGameEntity {
         return sup;
     }
 
-    deserialize(serialized: serializedEntity<serializedPlayer>): void {
-        if (serialized.type !== Player.type) return;
+    deserialize(serialized: serializedEntity<serializedPlayer>, timestamp: number): void {
+        if (serialized.type !== Player.type || timestamp < this.updatedAt) return;
 
         this.name = serialized.data.name;
-        super.deserialize(serialized);
+        super.deserialize(serialized, timestamp);
     }
 
     tick(deltaTime: number) {

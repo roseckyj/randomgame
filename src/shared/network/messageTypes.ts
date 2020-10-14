@@ -5,6 +5,7 @@ export interface messageEntities {
     updated: serializedEntity<any>[];
     removed: string[];
     time: number;
+    timestamp: number;
 }
 
 export interface messageMapRequest {
@@ -17,6 +18,11 @@ export interface messageLogin {
     passwordHash: string;
 }
 
+export interface messageAuth {
+    player: serializedEntity<serializedPlayer>;
+    token: string;
+}
+
 export interface messageError {
     error: string;
     description: string;
@@ -25,4 +31,10 @@ export interface messageError {
 export interface messageUpdate {
     player: serializedEntity<serializedPlayer>;
     loadedChunks: string[];
+    timestamp: number;
+}
+
+export interface messageToken {
+    token: string;
+    type: 'update' | 'data';
 }

@@ -3,8 +3,8 @@ import { Player } from '../../../60_Player';
 import { AbstractController } from '../AbstractController';
 
 const ROTATION_SPEED = 0.03;
-const SPEED = 0.01;
-const SPEED2 = 0.04;
+const SPEED = 0.001;
+const SPEED2 = 0.0035;
 
 export class ChickenAIController extends AbstractController {
     angle: number = 0;
@@ -30,13 +30,13 @@ export class ChickenAIController extends AbstractController {
                     closestPlayer.entity.position.x - this.object.position.x,
                 ) + rotate;
 
-            this.object.velocity.x = Math.cos(this.angle) * SPEED2;
-            this.object.velocity.y = Math.sin(this.angle) * SPEED2;
+            this.object.velocity.x = Math.cos(this.angle) * SPEED2 * deltaTime;
+            this.object.velocity.y = Math.sin(this.angle) * SPEED2 * deltaTime;
         } else {
             this.angle += (Math.random() - 0.5) * 2 * ROTATION_SPEED * deltaTime;
 
-            this.object.velocity.x = Math.cos(this.angle) * SPEED;
-            this.object.velocity.y = Math.sin(this.angle) * SPEED;
+            this.object.velocity.x = Math.cos(this.angle) * SPEED * deltaTime;
+            this.object.velocity.y = Math.sin(this.angle) * SPEED * deltaTime;
         }
 
         const ogX = this.object.position.x;

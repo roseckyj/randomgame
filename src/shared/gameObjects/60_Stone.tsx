@@ -29,11 +29,11 @@ export class Stone extends AbstractGameEntity {
         return sup;
     }
 
-    deserialize(serialized: serializedEntity<serializedStone>): void {
-        if (serialized.type !== Stone.type) return;
+    deserialize(serialized: serializedEntity<serializedStone>, timestamp: number): void {
+        if (serialized.type !== Stone.type || timestamp < this.updatedAt) return;
 
         this.size = serialized.data.size;
-        super.deserialize(serialized);
+        super.deserialize(serialized, timestamp);
     }
 
     static get type() {

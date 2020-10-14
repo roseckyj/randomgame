@@ -3,7 +3,13 @@ import { Player, serializedPlayer } from '../../../shared/gameObjects/60_Player'
 import { GameScene } from '../../../shared/Scene';
 import babylonjs from 'babylonjs';
 import { serializedChunk, Chunk } from '../../../shared/gameObjects/10_Chunk';
-import { messageEntities, messageError, messageLogin, messageUpdate } from '../../../shared/network/messageTypes';
+import {
+    messageAuth,
+    messageEntities,
+    messageError,
+    messageLogin,
+    messageUpdate,
+} from '../../../shared/network/messageTypes';
 import { AbstractGameEntity, Platform, serializedEntity } from '../../../shared/gameObjects/20_AbstractGameEntity';
 import { Tree } from '../../../shared/gameObjects/60_Tree';
 import { Stone } from '../../../shared/gameObjects/60_Stone';
@@ -13,15 +19,19 @@ import { Chicken } from '../../../shared/gameObjects/60_Chicken';
 type callback = (data: any) => void;
 
 export class NetworkClient {
-    private socket: SocketIOClient.Socket;
+    private updateSocket: SocketIOClient.Socket;
+    private largeDataSocket: SocketIOClient.Socket | null;
+
     private userId: string;
-    private opened: boolean;
     private callbacks: { [key: string]: callback } = {
         authenticated: () => {},
         updated: () => {},
         invalidPassword: () => {},
         disconnect: () => {},
     };
+    private token: string;
+
+    private player: serializedEntity<serializedPlayer>;
 
     constructor(private apiUrl: string, private scene: GameScene, private getBabylonScene: () => babylonjs.Scene) {}
 
@@ -30,18 +40,82 @@ export class NetworkClient {
     }
 
     public close() {
-        this.socket.disconnect();
+        this.updateSocket.disconnect();
+        this.updateSocket && this.updateSocket.disconnect();
+        this.largeDataSocket && this.largeDataSocket.disconnect();
     }
 
     public open() {
-        this.opened = true;
-        this.socket = io(this.apiUrl);
-        this.setListeners();
+        this.updateSocket = io(this.apiUrl);
+        this.setServiceListeners(this.updateSocket);
+    }
 
-        this.socket.on('auth', (data: serializedEntity<serializedPlayer>) => {
-            this.userId = data.id;
-            this.callbacks['authenticated'](data);
-            console.log('Joined game with player ', data.data.name, ' (' + data.id + ')');
+    private enableGameListeners() {
+        this.largeDataSocket = io(this.apiUrl);
+        this.largeDataSocket.on('ok', (_data: '') => {
+            console.log('Secondary socket connected!');
+            this.setMainListeners(this.updateSocket);
+            this.setMainListeners(this.largeDataSocket!);
+
+            this.callbacks['authenticated'](this.player);
+        });
+        this.largeDataSocket.emit('token', { token: this.token, type: 'data' });
+    }
+
+    private setMainListeners(socket: SocketIOClient.Socket) {
+        socket.on('entities', async (data: messageEntities) => {
+            data.removed.forEach((entity) => entity !== this.userId && this.scene.entities.remove(entity));
+            data.updated.forEach(
+                (entity) =>
+                    entity.id !== this.userId &&
+                    this.scene.entities.updateOrCreate(
+                        entity.id,
+                        entity,
+                        () => this.createEntity(entity)!,
+                        data.timestamp,
+                    ),
+            );
+
+            this.scene.timeStart = data.time;
+            this.callbacks.updated({});
+        });
+
+        socket.on('mapChunk', async (data: serializedChunk) => {
+            const id = Chunk.getId(data.x, data.y);
+
+            this.scene.chunks.updateOrCreate(
+                id,
+                data,
+                () => {
+                    const chunk = new Chunk(this.scene, data.x, data.y);
+                    chunk.attachRenderer(this.getBabylonScene());
+                    return chunk;
+                },
+                0,
+            );
+        });
+    }
+
+    private setServiceListeners(socket: SocketIOClient.Socket) {
+        socket.on('auth', (data: messageAuth) => {
+            this.userId = data.player.id;
+            this.token = data.token;
+            console.log(
+                'Joined game with player ' +
+                    data.player.data.name +
+                    ' (' +
+                    data.player.id +
+                    '), waiting for second socket...',
+            );
+            this.enableGameListeners();
+            this.player = data.player;
+        });
+
+        socket.on('err', async (data: messageError) => {
+            switch (data.error) {
+                case 'credentials':
+                    this.callbacks.invalidPassword(data);
+            }
         });
     }
 
@@ -49,12 +123,13 @@ export class NetworkClient {
         const payload: messageUpdate = {
             player: player.serialize(),
             loadedChunks: this.scene.chunks.filter((ch) => ch.getVisibility()).map((ch) => ch.id),
+            timestamp: new Date().getTime(),
         };
-        this.socket.emit('update', payload);
+        this.updateSocket && this.updateSocket.emit('update', payload);
     }
 
     public requestChunk(x: number, y: number) {
-        this.socket.emit('mapRequest', { x, y });
+        this.updateSocket && this.updateSocket.emit('mapRequest', { x, y });
     }
 
     public auth(name: string, password: string) {
@@ -62,58 +137,7 @@ export class NetworkClient {
             name,
             passwordHash: md5(password),
         };
-        this.socket.emit('login', payload);
-    }
-
-    private setListeners() {
-        this.socket.on('entities', async (data: messageEntities) => {
-            data.removed.forEach((entity) => entity !== this.userId && this.scene.entities.remove(entity));
-            data.updated /*.filter((entity) => {
-                const me = this.scene.entities.get(this.userId);
-                if (!me) return false;
-
-                const distX = Math.abs(Math.round(me.position.x) - entity.x) / 16;
-                const distY = Math.abs(Math.round(me.position.y) - entity.y) / 16;
-
-                return distX <= MAX_RENDER_DISTANCE && distY <= MAX_RENDER_DISTANCE;
-            })*/
-                .forEach(
-                    (entity) =>
-                        entity.id !== this.userId &&
-                        this.scene.entities.updateOrCreate(entity.id, entity, () => this.createEntity(entity)!),
-                );
-
-            this.scene.timeStart = data.time;
-            this.callbacks.updated({});
-        });
-
-        this.socket.on('mapChunk', async (data: serializedChunk) => {
-            const id = Chunk.getId(data.x, data.y);
-
-            this.scene.chunks.updateOrCreate(id, data, () => {
-                const chunk = new Chunk(this.scene, data.x, data.y);
-                chunk.attachRenderer(this.getBabylonScene());
-                return chunk;
-            });
-
-            /*
-            for (let x = -1; x <= 1; x++) {
-                for (let y = -1; y <= 1; y++) {
-                    const ch = this.scene.chunks.get(Chunk.getId(data.x + x, data.y + y));
-                    if (ch) {
-                        ch.updateMesh();
-                    }
-                }
-            }
-            */
-        });
-
-        this.socket.on('err', async (data: messageError) => {
-            switch (data.error) {
-                case 'credentials':
-                    this.callbacks.invalidPassword(data);
-            }
-        });
+        this.updateSocket.emit('login', payload);
     }
 
     private createEntity(entity: serializedEntity<any>): AbstractGameEntity | undefined {
@@ -137,7 +161,7 @@ export class NetworkClient {
             }
         }
         if (e) {
-            e.deserializeImmediatelly(entity);
+            e.deserializeImmediatelly(entity, 0);
             e.attachControllers(Platform.Client);
             e.attachDirtyListener((entity) => this.scene.updateEntity(entity));
             return e;

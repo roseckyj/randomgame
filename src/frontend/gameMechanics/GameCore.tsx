@@ -106,7 +106,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
         this.me.attachRenderer(this.babylonScene!);
         this.me.attachControllers(Platform.Client, true);
         this.me.controllerManager.invoke('bindKeys', CONTROLS_WASD);
-        this.me.deserializeImmediatelly(player);
+        this.me.deserializeImmediatelly(player, 0);
         this.gameScene.entities.add(player.id, this.me);
         this.me.attachDirtyListener((entity) => this.gameScene.updateEntity(entity));
 
@@ -283,7 +283,7 @@ export class GameCore extends React.Component<IGameCoreProps, IGameCoreState> {
                         dayLight.intensity = (1 - change) * dayLightIntensity;
                         nightLight.intensity = change * nightLightIntensity;
                     }
-                    console.log(dayLight.intensity, nightLight.intensity);
+                    //console.log(dayLight.intensity, nightLight.intensity);
 
                     //pipeline.setFocusDistance((CAMERA_DISTANCE * this.zoom) / Math.cos(CAMERA_ANGLE));
 

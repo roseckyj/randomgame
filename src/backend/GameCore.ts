@@ -27,16 +27,6 @@ export class GameCore {
         this.networkServer.open();
         console.log('Map seed: ', this.mapGenerator.seed);
 
-        this.tickTimer = setInterval(() => {
-            const time = new Date().getTime();
-            const deltaTime = time - this.lastTick;
-            if (deltaTime > 100) {
-                console.warn('Server is running less than 10 ticks per second!', deltaTime);
-            }
-            this.gameScene.tickChunks(deltaTime, this.networkServer.getActiveChunks());
-            this.lastTick = time;
-        }, TICK_TIME);
-
         /*
         this.tickTimer = setInterval(() => {
             console.log(
@@ -51,8 +41,29 @@ export class GameCore {
         }, 1000);
         */
 
-        this.updateTimer = setInterval(() => {
-            this.networkServer.sendUpdates();
+        this.update();
+        this.tick();
+    }
+
+    tick() {
+        const time = new Date().getTime();
+        const deltaTime = time - this.lastTick;
+        if (deltaTime > 200) {
+            console.warn('Server is running less than 5 ticks per second! (' + deltaTime + 'ms per tick)');
+        }
+        this.gameScene.tickChunks(deltaTime, this.networkServer.getActiveChunks());
+        this.lastTick = time;
+
+        this.tickTimer = setTimeout(() => {
+            this.tick();
+        }, TICK_TIME);
+    }
+
+    update() {
+        this.networkServer.sendUpdates();
+
+        this.updateTimer = setTimeout(() => {
+            this.update();
         }, UPDATE_TIME);
     }
 }

@@ -72,11 +72,10 @@ export class NetworkServer {
         //console.log("dirty: ", dirty.getKeys().length, "  dead: ", dead.getKeys().length)
         */
 
-        /*
-        this.dirtyEntities = this.dirtyEntities.filter(
-            (e) => this.scene.entities.get(e)?.serialize().type === 'player',
+        const old = new Set(this.dirtyEntities);
+        old.forEach(
+            (e) => e.serialize().type !== 'player' && this.dirtyEntities.delete(e)
         );
-        */
     }
 
     public setDirty(entities: AbstractGameEntity[]): void {
